@@ -34,7 +34,10 @@
                 "notebook.codeActionsOnSave": {
                     "notebook.source.fixAll": "explicit",
                     "notebook.source.organizeImports": "explicit"
-                }
+                },
+				"roo-cline.apiProvider": "openrouter",
+				"roo-cline.openRouterApiKey": "${env:OPENROUTER_API_KEY}",
+				"roo-cline.openRouterModelId": "deepseek/deepseek-chat-v3-0324:free"
 			},
 			
 			// Add the IDs of extensions you want installed when the container is created.
