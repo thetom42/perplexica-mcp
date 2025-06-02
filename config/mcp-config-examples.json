@@ -4,8 +4,8 @@
     "config": {
       "mcpServers": {
         "perplexica": {
-          "command": "python",
-          "args": ["/path/to/perplexica-mcp/perplexica_mcp_tool.py", "--transport", "stdio"],
+          "command": "uv",
+          "args": ["run", "/path/to/perplexica-mcp/src/perplexica_mcp_tool.py", "--transport", "stdio"],
           "env": {
             "PERPLEXICA_BACKEND_URL": "http://localhost:3000/api/search"
           }
@@ -19,8 +19,8 @@
     "config": {
       "mcpServers": {
         "perplexica": {
-          "command": "python",
-          "args": ["/path/to/perplexica-mcp/perplexica_mcp_tool.py", "--transport", "sse", "--host", "localhost", "--sse-port", "3001"],
+          "command": "uv",
+          "args": ["run", "/path/to/perplexica-mcp/src/perplexica_mcp_tool.py", "--transport", "sse", "--host", "localhost", "--sse-port", "3001"],
           "env": {
             "PERPLEXICA_BACKEND_URL": "http://localhost:3000/api/search"
           }
@@ -34,185 +34,12 @@
     "config": {
       "servers": {
         "perplexica": {
-          "command": "python",
-          "args": ["/path/to/perplexica-mcp/perplexica_mcp_tool.py", "--transport", "stdio"],
+          "command": "uv",
+          "args": ["run", "/path/to/perplexica-mcp/src/perplexica_mcp_tool.py", "--transport", "stdio"],
           "env": {
             "PERPLEXICA_BACKEND_URL": "http://localhost:3000/api/search"
           }
         }
-      }
-    }
-  },
-  
-  "docker_compose": {
-    "description": "Docker Compose configuration for running all transports",
-    "config": {
-      "version": "3.8",
-      "services": {
-        "perplexica-mcp-stdio": {
-          "build": ".",
-          "command": "python perplexica_mcp_tool.py --transport stdio",
-          "environment": {
-            "PERPLEXICA_BACKEND_URL": "http://perplexica:3000/api/search"
-          },
-          "stdin_open": true,
-          "tty": true
-        },
-        "perplexica-mcp-sse": {
-          "build": ".",
-          "command": "python perplexica_mcp_tool.py --transport sse --host 0.0.0.0 --sse-port 3001",
-          "ports": ["3001:3001"],
-          "environment": {
-            "PERPLEXICA_BACKEND_URL": "http://perplexica:3000/api/search"
-          }
-        },
-        "perplexica-mcp-http": {
-          "build": ".",
-          "command": "python perplexica_mcp_tool.py --transport http --host 0.0.0.0 --http-port 3002",
-          "ports": ["3002:3002"],
-          "environment": {
-            "PERPLEXICA_BACKEND_URL": "http://perplexica:3000/api/search"
-          }
-        }
-      }
-    }
-  },
-  
-  "systemd_service": {
-    "description": "Systemd service configuration for running as a daemon",
-    "config": {
-      "unit_file": "/etc/systemd/system/perplexica-mcp.service",
-      "content": "[Unit]\nDescription=Perplexica MCP Server\nAfter=network.target\n\n[Service]\nType=simple\nUser=mcp\nWorkingDirectory=/opt/perplexica-mcp\nExecStart=/usr/bin/python perplexica_mcp_tool.py --transport all --host 0.0.0.0 --sse-port 3001 --http-port 3002\nRestart=always\nRestartSec=10\nEnvironment=PERPLEXICA_BACKEND_URL=http://localhost:3000/api/search\n\n[Install]\nWantedBy=multi-user.target"
-    }
-  },
-  
-  "nginx_proxy": {
-    "description": "Nginx configuration for proxying HTTP and SSE transports",
-    "config": {
-      "server": {
-        "listen": "80",
-        "server_name": "perplexica-mcp.example.com",
-        "locations": {
-          "/api/": {
-            "proxy_pass": "http://localhost:3002/",
-            "proxy_set_header": {
-              "Host": "$host",
-              "X-Real-IP": "$remote_addr",
-              "X-Forwarded-For": "$proxy_add_x_forwarded_for",
-              "X-Forwarded-Proto": "$scheme"
-            }
-          },
-          "/sse": {
-            "proxy_pass": "http://localhost:3001/sse",
-            "proxy_set_header": {
-              "Host": "$host",
-              "X-Real-IP": "$remote_addr",
-              "X-Forwarded-For": "$proxy_add_x_forwarded_for",
-              "X-Forwarded-Proto": "$scheme",
-              "Connection": "upgrade",
-              "Upgrade": "$http_upgrade"
-            },
-            "proxy_buffering": "off",
-            "proxy_cache": "off"
-          }
-        }
-      }
-    }
-  },
-  
-  "kubernetes_deployment": {
-    "description": "Kubernetes deployment for scalable MCP server",
-    "config": {
-      "apiVersion": "apps/v1",
-      "kind": "Deployment",
-      "metadata": {
-        "name": "perplexica-mcp",
-        "labels": {
-          "app": "perplexica-mcp"
-        }
-      },
-      "spec": {
-        "replicas": 3,
-        "selector": {
-          "matchLabels": {
-            "app": "perplexica-mcp"
-          }
-        },
-        "template": {
-          "metadata": {
-            "labels": {
-              "app": "perplexica-mcp"
-            }
-          },
-          "spec": {
-            "containers": [
-              {
-                "name": "perplexica-mcp",
-                "image": "perplexica-mcp:latest",
-                "command": ["python", "perplexica_mcp_tool.py"],
-                "args": ["--transport", "http", "--host", "0.0.0.0", "--http-port", "3002"],
-                "ports": [
-                  {
-                    "containerPort": 3002,
-                    "name": "http"
-                  }
-                ],
-                "env": [
-                  {
-                    "name": "PERPLEXICA_BACKEND_URL",
-                    "value": "http://perplexica-service:3000/api/search"
-                  }
-                ],
-                "livenessProbe": {
-                  "httpGet": {
-                    "path": "/health",
-                    "port": 3002
-                  },
-                  "initialDelaySeconds": 30,
-                  "periodSeconds": 10
-                },
-                "readinessProbe": {
-                  "httpGet": {
-                    "path": "/health",
-                    "port": 3002
-                  },
-                  "initialDelaySeconds": 5,
-                  "periodSeconds": 5
-                }
-              }
-            ]
-          }
-        }
-      }
-    }
-  },
-  
-  "usage_examples": {
-    "description": "Example usage patterns for different scenarios",
-    "examples": {
-      "development": {
-        "command": "python perplexica_mcp_tool.py --transport stdio",
-        "description": "For local development and testing with MCP clients"
-      },
-      "web_integration": {
-        "command": "python perplexica_mcp_tool.py --transport http --host 0.0.0.0 --http-port 8080",
-        "description": "For web applications that need REST API access"
-      },
-      "real_time_apps": {
-        "command": "python perplexica_mcp_tool.py --transport sse --host 0.0.0.0 --sse-port 8081",
-        "description": "For applications requiring real-time streaming responses"
-      },
-      "production_all": {
-        "command": "python perplexica_mcp_tool.py --transport all --host 0.0.0.0 --sse-port 3001 --http-port 3002",
-        "description": "Production setup supporting all transport types"
-      },
-      "load_balanced": {
-        "description": "Multiple instances behind a load balancer",
-        "setup": [
-          "python perplexica_mcp_tool.py --transport http --host 0.0.0.0 --http-port 3002",
-          "python perplexica_mcp_tool.py --transport http --host 0.0.0.0 --http-port 3003",
-          "python perplexica_mcp_tool.py --transport http --host 0.0.0.0 --http-port 3004"
-        ]
       }
     }
   }
