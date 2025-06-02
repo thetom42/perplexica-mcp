@@ -44,6 +44,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Container**: Docker and Docker Compose support
 - **Orchestration**: Kubernetes deployment configurations
 - **Service**: Systemd service configuration for daemon operation
+
 ## [Unreleased]
 
 ## [0.1.0] - 2025-05-31
