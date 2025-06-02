@@ -7,8 +7,6 @@ import requests
 from dotenv import load_dotenv
 from mcp.server.fastmcp import FastMCP
 from mcp.server import Server
-from mcp.server.stdio import stdio_server
-from mcp.server.sse import SseServerTransport
 from mcp.types import Tool, TextContent
 from pydantic import Field
 from typing import Annotated, Sequence
@@ -239,34 +237,17 @@ async def health_check():
     return {"status": "healthy", "service": "perplexica-mcp"}
 
 async def run_stdio():
-    """Run the server with stdio transport."""
-    async with stdio_server() as (read_stream, write_stream):
-        await server.run(
-            read_stream,
-            write_stream,
-            server.create_initialization_options()
-        )
+    """Run the server with stdio transport using FastMCP."""
+    # FastMCP handles stdio transport internally
+    # Use run_stdio_async for async context compatibility
+    await mcp.run_stdio_async()
 
 async def run_sse_server(host: str = "0.0.0.0", port: int = 3001):
-    """Run the server with SSE transport."""
-    # TODO: SSE transport implementation needs to be fixed
-    # The current MCP SSE transport API is not clear from documentation
-    print(f"SSE transport not yet implemented properly. Would run on {host}:{port}")
-    print("SSE transport requires additional research into the correct MCP SSE API usage.")
+    """Run the server with SSE transport using FastMCP's built-in SSE support."""
+    # Use FastMCP's built-in SSE app
+    sse_app = mcp.sse_app()
     
-    # For now, just run a simple HTTP server that indicates SSE is not ready
-    from fastapi import FastAPI
-    app = FastAPI()
-    
-    @app.get("/")
-    async def root():
-        return {"message": "SSE transport not yet implemented", "status": "error"}
-    
-    @app.get("/sse")
-    async def sse_endpoint():
-        return {"message": "SSE transport not yet implemented", "status": "error"}
-    
-    config = Config(app, host=host, port=port, log_level="info")
+    config = Config(sse_app, host=host, port=port, log_level="info")
     server_instance = uvicorn.Server(config)
     await server_instance.serve()
 

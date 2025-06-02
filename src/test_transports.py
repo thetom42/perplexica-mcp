@@ -230,27 +230,23 @@ async def test_sse_transport(host: str = "localhost", port: int = 3001) -> bool:
     
     for i in range(max_retries):
         try:
-            # First check if the server is responding at all
-            try:
-                health_response = requests.get(f"http://{host}:{port}/", timeout=5)
-                print(f"Server response status: {health_response.status_code}")
-            except requests.exceptions.RequestException:
-                print(f"Server not responding on port {port}")
-            
-            # Then check the SSE endpoint
+            # Check the SSE endpoint with streaming
             response = requests.get(f"http://{host}:{port}/sse", timeout=5, stream=True)
             
             if response.status_code == 200:
-                # Check if it's the "not implemented" response
+                # For SSE, we expect a streaming response
+                # Try to read the first few bytes to confirm it's working
                 try:
-                    response_data = response.json()
-                    if response_data.get("message") == "SSE transport not yet implemented":
-                        print("✓ SSE endpoint accessible (transport not yet implemented)")
+                    # Read a small chunk to see if we get SSE data
+                    chunk = next(response.iter_content(chunk_size=100, decode_unicode=True))
+                    if chunk and ("ping" in chunk or "data:" in chunk or "event:" in chunk):
+                        print("✓ SSE endpoint accessible and streaming")
                         return True
                     else:
                         print("✓ SSE endpoint accessible")
                         return True
-                except (json.JSONDecodeError, ValueError):
+                except StopIteration:
+                    # No data received, but 200 status means endpoint exists
                     print("✓ SSE endpoint accessible")
                     return True
             else:

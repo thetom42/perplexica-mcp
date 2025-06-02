@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   # Perplexica MCP Server with all transports
   perplexica-mcp:
