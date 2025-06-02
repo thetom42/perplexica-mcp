@@ -8,8 +8,8 @@ services:
     ports:
       - "3001:3001"  # SSE transport
       - "3002:3002"  # HTTP transport
-    environment:
-      - PERPLEXICA_BACKEND_URL=http://perplexica:3000/api/search
+    env_file:
+      - .env
     command: python perplexica_mcp_tool.py --transport all --host 0.0.0.0 --sse-port 3001 --http-port 3002
     restart: unless-stopped
     healthcheck:
@@ -25,8 +25,8 @@ services:
     container_name: perplexica-mcp-http
     ports:
       - "3003:3002"  # Map to different host port
-    environment:
-      - PERPLEXICA_BACKEND_URL=http://perplexica:3000/api/search
+    env_file:
+      - .env
     command: python perplexica_mcp_tool.py --transport http --host 0.0.0.0 --http-port 3002
     restart: unless-stopped
     healthcheck:
@@ -42,8 +42,8 @@ services:
     container_name: perplexica-mcp-sse
     ports:
       - "3004:3001"  # Map to different host port
-    environment:
-      - PERPLEXICA_BACKEND_URL=http://perplexica:3000/api/search
+    env_file:
+      - .env
     command: python perplexica_mcp_tool.py --transport sse --host 0.0.0.0 --sse-port 3001
     restart: unless-stopped
 
