@@ -10,7 +10,7 @@ services:
       - "3002:3002"  # HTTP transport
     env_file:
       - .env
-    command: python perplexica_mcp_tool.py --transport all --host 0.0.0.0 --sse-port 3001 --http-port 3002
+    command: python src/perplexica_mcp_tool.py --transport all --host 0.0.0.0 --sse-port 3001 --http-port 3002
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3002/health"]
@@ -27,7 +27,7 @@ services:
       - "3003:3002"  # Map to different host port
     env_file:
       - .env
-    command: python perplexica_mcp_tool.py --transport http --host 0.0.0.0 --http-port 3002
+    command: python src/perplexica_mcp_tool.py --transport http --host 0.0.0.0 --http-port 3002
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3002/health"]
@@ -44,7 +44,7 @@ services:
       - "3004:3001"  # Map to different host port
     env_file:
       - .env
-    command: python perplexica_mcp_tool.py --transport sse --host 0.0.0.0 --sse-port 3001
+    command: python src/perplexica_mcp_tool.py --transport sse --host 0.0.0.0 --sse-port 3001
     restart: unless-stopped
 
   # Nginx reverse proxy for load balancing
@@ -54,7 +54,7 @@ services:
     ports:
       - "8080:80"
     volumes:
-      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./config/nginx.conf:/etc/nginx/nginx.conf:ro
     depends_on:
       - perplexica-mcp
       - perplexica-mcp-http

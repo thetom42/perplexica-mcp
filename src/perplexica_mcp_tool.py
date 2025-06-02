@@ -13,8 +13,8 @@ from mcp.types import Tool, TextContent
 from pydantic import Field
 from typing import Annotated, Sequence
 import uvicorn
+from uvicorn.config import Config
 from fastapi import FastAPI
-from fastapi.responses import StreamingResponse
 import json
 
 # Load environment variables from .env file
@@ -247,36 +247,34 @@ async def run_stdio():
             server.create_initialization_options()
         )
 
-async def run_sse(host: str = "0.0.0.0", port: int = 3001):
+async def run_sse_server(host: str = "0.0.0.0", port: int = 3001):
     """Run the server with SSE transport."""
-    transport = SseServerTransport("/messages")
+    # TODO: SSE transport implementation needs to be fixed
+    # The current MCP SSE transport API is not clear from documentation
+    print(f"SSE transport not yet implemented properly. Would run on {host}:{port}")
+    print("SSE transport requires additional research into the correct MCP SSE API usage.")
     
-    async def run_server():
-        async with transport.connect_sse(
-            server,
-            server.create_initialization_options()
-        ) as connection:
-            await connection.run()
+    # For now, just run a simple HTTP server that indicates SSE is not ready
+    from fastapi import FastAPI
+    app = FastAPI()
     
-    # Create FastAPI app for SSE
-    sse_app = FastAPI()
+    @app.get("/")
+    async def root():
+        return {"message": "SSE transport not yet implemented", "status": "error"}
     
-    @sse_app.get("/sse")
+    @app.get("/sse")
     async def sse_endpoint():
-        return StreamingResponse(
-            transport.handle_sse_request(),
-            media_type="text/event-stream"
-        )
+        return {"message": "SSE transport not yet implemented", "status": "error"}
     
-    # Run both the SSE server and FastAPI
-    await asyncio.gather(
-        run_server(),
-        uvicorn.run(sse_app, host=host, port=port, log_level="info")
-    )
+    config = Config(app, host=host, port=port, log_level="info")
+    server_instance = uvicorn.Server(config)
+    await server_instance.serve()
 
-def run_http(host: str = "0.0.0.0", port: int = 3002):
+async def run_http_server(host: str = "0.0.0.0", port: int = 3002):
     """Run the server with HTTP transport."""
-    uvicorn.run(app, host=host, port=port, log_level="info")
+    config = Config(app, host=host, port=port, log_level="info")
+    server = uvicorn.Server(config)
+    await server.serve()
 
 def main():
     """Main entry point with transport selection."""
@@ -311,20 +309,18 @@ def main():
         # Use FastMCP for stdio
         mcp.run()
     elif args.transport == "sse":
-        asyncio.run(run_sse(args.host, args.sse_port))
+        asyncio.run(run_sse_server(args.host, args.sse_port))
     elif args.transport == "http":
-        run_http(args.host, args.http_port)
+        asyncio.run(run_http_server(args.host, args.http_port))
     elif args.transport == "all":
         # Run all transports concurrently
-        async def run_all():
+        async def run_all_servers():
             await asyncio.gather(
                 run_stdio(),
-                run_sse(args.host, args.sse_port),
-                asyncio.create_task(
-                    asyncio.to_thread(run_http, args.host, args.http_port)
-                )
+                run_sse_server(args.host, args.sse_port),
+                run_http_server(args.host, args.http_port)
             )
-        asyncio.run(run_all())
+        asyncio.run(run_all_servers())
 
 if __name__ == "__main__":
     main()

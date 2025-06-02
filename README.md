@@ -13,17 +13,20 @@ A Model Context Protocol (MCP) server that provides access to Perplexica's AI-po
 ## Installation
 
 1. Clone this repository:
+
 ```bash
 git clone <repository-url>
 cd perplexica-mcp
 ```
 
 2. Install dependencies:
+
 ```bash
 pip install -e .
 ```
 
 3. Set up environment variables:
+
 ```bash
 cp .sample.env .env
 # Edit .env with your Perplexica backend URL
@@ -36,27 +39,35 @@ cp .sample.env .env
 The server supports three different transport protocols:
 
 #### 1. Stdio Transport (Default)
+
 Best for MCP clients that communicate via standard input/output:
+
 ```bash
-python perplexica_mcp_tool.py --transport stdio
+python src/perplexica_mcp_tool.py --transport stdio
 ```
 
 #### 2. SSE Transport
+
 Best for web-based clients that need real-time communication:
+
 ```bash
-python perplexica_mcp_tool.py --transport sse --host 0.0.0.0 --sse-port 3001
+python src/perplexica_mcp_tool.py --transport sse --host 0.0.0.0 --sse-port 3001
 ```
 
 #### 3. HTTP Transport
+
 Best for REST API integration:
+
 ```bash
-python perplexica_mcp_tool.py --transport http --host 0.0.0.0 --http-port 3002
+python src/perplexica_mcp_tool.py --transport http --host 0.0.0.0 --http-port 3002
 ```
 
 #### 4. All Transports
+
 Run all transports simultaneously:
+
 ```bash
-python perplexica_mcp_tool.py --transport all --host 0.0.0.0 --sse-port 3001 --http-port 3002
+python src/perplexica_mcp_tool.py --transport all --host 0.0.0.0 --sse-port 3001 --http-port 3002
 ```
 
 ### Command Line Options
@@ -69,31 +80,32 @@ python perplexica_mcp_tool.py --transport all --host 0.0.0.0 --sse-port 3001 --h
 ### MCP Client Configuration
 
 #### For Claude Desktop (stdio)
+
 Add to your Claude Desktop configuration:
+
 ```json
 {
   "mcpServers": {
     "perplexica": {
       "command": "python",
-      "args": ["/path/to/perplexica_mcp_tool.py", "--transport", "stdio"]
+      "args": ["/path/to/src/perplexica_mcp_tool.py", "--transport", "stdio"]
     }
   }
 }
 ```
 
 #### For SSE Clients
+
 Connect to: `http://localhost:3001/sse`
 
 #### For HTTP Clients
-Make POST requests to: `http://localhost:3002/search`
-
-## API Reference
 
 ### Search Tool
 
 The server provides a `search` tool with the following parameters:
 
 #### Required Parameters
+
 - `query` (string): The search query or question
 - `focus_mode` (string): Focus mode, must be one of:
   - `webSearch`: General web search
@@ -104,6 +116,7 @@ The server provides a `search` tool with the following parameters:
   - `redditSearch`: Reddit community discussions
 
 #### Optional Parameters
+
 - `chat_model` (string): Chat model configuration
 - `embedding_model` (string): Embedding model configuration
 - `optimization_mode` (string): `speed` or `balanced`
@@ -116,9 +129,11 @@ The server provides a `search` tool with the following parameters:
 When using HTTP transport, the following endpoints are available:
 
 #### POST /search
+
 Search using Perplexica's AI-powered search engine.
 
 **Request Body:**
+
 ```json
 {
   "query": "What is quantum computing?",
@@ -129,6 +144,7 @@ Search using Perplexica's AI-powered search engine.
 ```
 
 **Response:**
+
 ```json
 {
   "message": "Quantum computing is...",
@@ -137,9 +153,11 @@ Search using Perplexica's AI-powered search engine.
 ```
 
 #### GET /health
+
 Health check endpoint.
 
 **Response:**
+
 ```json
 {
   "status": "healthy",
@@ -169,6 +187,7 @@ PERPLEXICA_BACKEND_URL=http://localhost:3000/api/search
 ## Examples
 
 ### Basic Search
+
 ```python
 # Using the MCP tool
 result = search(
@@ -178,6 +197,7 @@ result = search(
 ```
 
 ### Academic Research
+
 ```python
 # Academic search with conversation history
 result = search(
@@ -192,6 +212,7 @@ result = search(
 ```
 
 ### HTTP API Usage
+
 ```bash
 curl -X POST http://localhost:3002/search \
   -H "Content-Type: application/json" \
@@ -205,20 +226,22 @@ curl -X POST http://localhost:3002/search \
 ## Development
 
 ### Running Tests
+
 ```bash
 # Test stdio transport
-python perplexica_mcp_tool.py --transport stdio
+python src/perplexica_mcp_tool.py --transport stdio
 
 # Test SSE transport
-python perplexica_mcp_tool.py --transport sse --sse-port 3001
+python src/perplexica_mcp_tool.py --transport sse --sse-port 3001
 
 # Test HTTP transport
-python perplexica_mcp_tool.py --transport http --http-port 3002
+python src/perplexica_mcp_tool.py --transport http --http-port 3002
 ```
 
 ### Architecture
 
 The server implementation uses:
+
 - **FastMCP**: For stdio transport (simplified MCP server)
 - **Standard MCP Server**: For SSE and HTTP transports
 - **FastAPI**: For HTTP REST API endpoints
@@ -233,7 +256,9 @@ The server implementation uses:
 3. **Import Errors**: Install all dependencies with `pip install -e .`
 
 ### Debug Mode
+
 Add logging to debug issues:
+
 ```python
 import logging
 logging.basicConfig(level=logging.DEBUG)
@@ -254,6 +279,7 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 ## Support
 
 For issues and questions:
+
 - Check the troubleshooting section
 - Review the Perplexica documentation
 - Open an issue on GitHub

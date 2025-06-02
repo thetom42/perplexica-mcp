@@ -16,7 +16,7 @@ COPY pyproject.toml ./
 RUN pip install --no-cache-dir -e .
 
 # Copy application code
-COPY . .
+COPY src/ ./src
 
 # Create non-root user for security
 RUN useradd -m -u 1000 mcpuser && chown -R mcpuser:mcpuser /app
@@ -29,4 +29,4 @@ EXPOSE 3001 3002
 ENV PERPLEXICA_BACKEND_URL=http://localhost:3000/api/search
 
 # Default command (can be overridden)
-CMD ["python", "perplexica_mcp_tool.py", "--transport", "all", "--host", "0.0.0.0", "--sse-port", "3001", "--http-port", "3002"]
+CMD ["python", "src/perplexica_mcp_tool.py", "--transport", "all", "--host", "0.0.0.0", "--sse-port", "3001", "--http-port", "3002"]
