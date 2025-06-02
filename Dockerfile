@@ -1,25 +1,26 @@
-# Use Python 3.12 slim image
-FROM python:3.12-slim
+# Use Python 3.13 Alpine image for better security and smaller size
+FROM python:3.13-alpine
 
 # Set working directory
 WORKDIR /app
 
-# Install system dependencies
-RUN apt-get update && apt-get install -y \
+# Install system dependencies and uv
+RUN apk add --no-cache \
     gcc \
-    && rm -rf /var/lib/apt/lists/*
+    musl-dev \
+    && pip install --no-cache-dir uv
 
 # Copy requirements first for better caching
 COPY pyproject.toml ./
 
-# Install Python dependencies
-RUN pip install --no-cache-dir -e .
+# Install Python dependencies using uv
+RUN uv pip install --system --no-cache -e .
 
 # Copy application code
 COPY src/ ./src
 
-# Create non-root user for security
-RUN useradd -m -u 1000 mcpuser && chown -R mcpuser:mcpuser /app
+# Create non-root user for security (Alpine compatible)
+RUN adduser -D -u 1000 mcpuser && chown -R mcpuser:mcpuser /app
 USER mcpuser
 
 # Expose ports for SSE and HTTP transports
