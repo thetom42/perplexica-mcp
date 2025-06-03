@@ -1,101 +1,285 @@
 # Perplexica MCP Server
 
-Perplexica MCP Server is a Model Context Protocol (MCP) server that acts as a proxy to provide LLM access to Perplexica's AI-powered search engine. This server enables AI assistants and other MCP clients to perform searches through the Perplexica API.
+A Model Context Protocol (MCP) server that provides access to Perplexica's AI-powered search engine. This server supports multiple transport protocols: stdio, Server-Sent Events (SSE), and HTTP.
 
-## What This MCP Server Provides
+## Features
 
-- **Single Search Tool**: Exposes Perplexica's search functionality as an MCP tool
-- **API Proxy**: Acts as a bridge between MCP clients and the Perplexica search endpoint
-- **Parameter Passthrough**: Forwards all search parameters (focus modes, models, etc.) to the Perplexica API
-- **MCP Protocol Compliance**: Implements the Model Context Protocol for seamless integration with AI assistants
+- **Multi-Transport Support**: Choose between stdio, SSE, or HTTP transports
+- **AI-Powered Search**: Access Perplexica's intelligent search capabilities
+- **Multiple Focus Modes**: Support for web search, academic search, writing assistant, and more
+- **Flexible Configuration**: Customizable chat models, embedding models, and optimization modes
+- **Conversation History**: Maintain context across search queries
 
 ## Installation
 
-To use the Perplexica MCP Server, you'll need to have Python 3.12 or later installed on your system.
-
 1. Clone this repository:
 
-  ```bash
-  git clone https://github.com/yourusername/perplexica-mcp.git
-  cd perplexica-mcp
-  ```
+```bash
+git clone <repository-url>
+cd perplexica-mcp
+```
 
-2. Install the required dependencies:
+2. Install dependencies:
 
-  ```bash
-  pip install -e .
-  ```
+```bash
+pip install -e .
+```
 
-## MCP Server Configuration
+3. Set up environment variables:
 
-This server is designed to be used with MCP-compatible clients. Add the following configuration to your MCP client:
+```bash
+cp .sample.env .env
+# Edit .env with your Perplexica backend URL
+```
+
+## Usage
+
+### Transport Options
+
+The server supports three different transport protocols:
+
+#### 1. Stdio Transport (Default)
+
+Best for MCP clients that communicate via standard input/output:
+
+```bash
+python src/perplexica_mcp_tool.py --transport stdio
+```
+
+#### 2. SSE Transport
+
+Best for web-based clients that need real-time communication:
+
+```bash
+python src/perplexica_mcp_tool.py --transport sse --host 0.0.0.0 --sse-port 3001
+```
+
+#### 3. HTTP Transport
+
+Best for REST API integration:
+
+```bash
+python src/perplexica_mcp_tool.py --transport http --host 0.0.0.0 --http-port 3002
+```
+
+#### 4. All Transports
+
+Run all transports simultaneously:
+
+```bash
+python src/perplexica_mcp_tool.py --transport all --host 0.0.0.0 --sse-port 3001 --http-port 3002
+```
+
+### Command Line Options
+
+- `--transport`: Choose transport type (`stdio`, `sse`, `http`, `all`)
+- `--host`: Host to bind to for SSE/HTTP transports (default: `0.0.0.0`)
+- `--sse-port`: Port for SSE transport (default: `3001`)
+- `--http-port`: Port for HTTP transport (default: `3002`)
+
+### MCP Client Configuration
+
+#### For Claude Desktop (stdio)
+
+Add to your Claude Desktop configuration:
 
 ```json
 {
   "mcpServers": {
     "perplexica": {
-      "command": "uv",
-      "args": ["run", "/path/to/perplexica-mcp/perplexica_mcp_tool.py"],
-      "env": {
-        "PERPLEXICA_BACKEND_URL": "http://localhost:3000/api/search"
-      }
+      "command": "python",
+      "args": ["/path/to/src/perplexica_mcp_tool.py", "--transport", "stdio"]
     }
   }
 }
 ```
 
-## Backend URL Configuration
+#### For SSE Clients
 
-The Perplexica MCP Server uses an environment variable to configure the backend URL. To set this up:
+Connect to: `http://localhost:3001/sse`
 
-1. Create a `.env` file in the root of the project (if it doesn't already exist)
-2. Add the `PERPLEXICA_BACKEND_URL` variable with your desired backend URL:
+#### For HTTP Clients
 
-```ini
+### Search Tool
+
+The server provides a `search` tool with the following parameters:
+
+#### Required Parameters
+
+- `query` (string): The search query or question
+- `focus_mode` (string): Focus mode, must be one of:
+  - `webSearch`: General web search
+  - `academicSearch`: Academic and research-focused search
+  - `writingAssistant`: Writing and content creation assistance
+  - `wolframAlphaSearch`: Mathematical and computational queries
+  - `youtubeSearch`: Video content search
+  - `redditSearch`: Reddit community discussions
+
+#### Optional Parameters
+
+- `chat_model` (string): Chat model configuration
+- `embedding_model` (string): Embedding model configuration
+- `optimization_mode` (string): `speed` or `balanced`
+- `history` (array): Conversation history as `[role, message]` pairs
+- `system_instructions` (string): Custom instructions for AI response
+- `stream` (boolean): Whether to stream responses (default: false)
+
+### HTTP API Endpoints
+
+When using HTTP transport, the following endpoints are available:
+
+#### POST /search
+
+Search using Perplexica's AI-powered search engine.
+
+**Request Body:**
+
+```json
+{
+  "query": "What is quantum computing?",
+  "focus_mode": "academicSearch",
+  "optimization_mode": "balanced",
+  "system_instructions": "Provide a technical but accessible explanation"
+}
+```
+
+**Response:**
+
+```json
+{
+  "message": "Quantum computing is...",
+  "sources": [...]
+}
+```
+
+#### GET /health
+
+Health check endpoint.
+
+**Response:**
+
+```json
+{
+  "status": "healthy",
+  "service": "perplexica-mcp"
+}
+```
+
+## Configuration
+
+### Environment Variables
+
+Create a `.env` file with the following variables:
+
+```env
 PERPLEXICA_BACKEND_URL=http://localhost:3000/api/search
 ```
 
-The server will use this URL to communicate with the Perplexica backend. If the environment variable is not set, it will default to `http://localhost:3000/api/search`.
+### Focus Modes
 
-## Usage
+- **webSearch**: General web search for any topic
+- **academicSearch**: Academic papers and research content
+- **writingAssistant**: Help with writing and content creation
+- **wolframAlphaSearch**: Mathematical computations and data analysis
+- **youtubeSearch**: Video content and tutorials
+- **redditSearch**: Community discussions and opinions
 
-This MCP server provides a `search` tool that can be used by MCP clients to perform searches through Perplexica. The tool accepts the following parameters:
+## Examples
 
-### Search Tool Parameters
+### Basic Search
 
-- `query` (required): The search query string
-- `focus_mode` (required): The search focus mode
-- `chat_model` (optional): Chat model configuration
-- `embedding_model` (optional): Embedding model configuration
-- `optimization_mode` (optional): Performance optimization setting
-- `history` (optional): Conversation history
-- `system_instructions` (optional): Custom AI guidance
-- `stream` (optional): Whether to stream responses
-
-### Example Usage via MCP Client
-
-When connected to an MCP client, you can use the search tool like this:
-
-```none
-Search for "Python programming best practices" using webSearch focus mode
+```python
+# Using the MCP tool
+result = search(
+    query="What are the benefits of renewable energy?",
+    focus_mode="webSearch"
+)
 ```
 
-The MCP client will automatically invoke the search tool with the appropriate parameters.
+### Academic Research
 
-## Perplexica Integration
+```python
+# Academic search with conversation history
+result = search(
+    query="Latest developments in machine learning",
+    focus_mode="academicSearch",
+    optimization_mode="balanced",
+    history=[
+        ["human", "I'm researching AI trends"],
+        ["assistant", "I can help you find recent research papers"]
+    ]
+)
+```
 
-This MCP server acts as a proxy to the Perplexica search API. All search parameters and configurations are passed through to the underlying Perplexica service:
+### HTTP API Usage
 
-- **Focus Modes**: Supports all Perplexica focus modes (webSearch, academicSearch, writingAssistant, wolframAlphaSearch, youtubeSearch, redditSearch)
-- **Model Configuration**: Passes through chat model and embedding model settings to Perplexica
-- **Search Options**: Forwards optimization modes, conversation history, and system instructions
+```bash
+curl -X POST http://localhost:3002/search \
+  -H "Content-Type: application/json" \
+  -d '{
+    "query": "Climate change solutions",
+    "focus_mode": "academicSearch",
+    "optimization_mode": "speed"
+  }'
+```
 
-For detailed information about Perplexica's capabilities and features, please refer to the [Perplexica documentation](https://github.com/ItzCrazyKns/Perplexica).
+## Development
 
-## Contributing
+### Running Tests
 
-Contributions are welcome! Please open an issue or submit a pull request.
+```bash
+# Test stdio transport
+python src/perplexica_mcp_tool.py --transport stdio
+
+# Test SSE transport
+python src/perplexica_mcp_tool.py --transport sse --sse-port 3001
+
+# Test HTTP transport
+python src/perplexica_mcp_tool.py --transport http --http-port 3002
+```
+
+### Architecture
+
+The server implementation uses:
+
+- **FastMCP**: For stdio transport (simplified MCP server)
+- **Standard MCP Server**: For SSE and HTTP transports
+- **FastAPI**: For HTTP REST API endpoints
+- **Uvicorn**: ASGI server for SSE and HTTP transports
+
+## Troubleshooting
+
+### Common Issues
+
+1. **Connection Refused**: Ensure Perplexica backend is running
+2. **Port Already in Use**: Change port numbers using command line options
+3. **Import Errors**: Install all dependencies with `pip install -e .`
+
+### Debug Mode
+
+Add logging to debug issues:
+
+```python
+import logging
+logging.basicConfig(level=logging.DEBUG)
+```
 
 ## License
 
-This project is licensed under the MIT License. See the LICENSE file for details.
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Add tests if applicable
+5. Submit a pull request
+
+## Support
+
+For issues and questions:
+
+- Check the troubleshooting section
+- Review the Perplexica documentation
+- Open an issue on GitHub
