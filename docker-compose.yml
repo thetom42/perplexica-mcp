@@ -63,7 +63,3 @@ networks:
   default:
     name: perplexica-network
     external: false
-
-volumes:
-  nginx_logs:
-    driver: local

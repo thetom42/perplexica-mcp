@@ -7,14 +7,13 @@ WORKDIR /app
 # Install system dependencies and uv
 RUN apk add --no-cache \
     gcc \
-    musl-dev \
-    && pip install --no-cache-dir uv
+    musl-dev
 
 # Copy requirements first for better caching
 COPY pyproject.toml ./
 
 # Install Python dependencies using uv
-RUN uv pip install --system --no-cache -e .
+RUN pip install --no-cache-dir -e .
 
 # Copy application code
 COPY src/ ./src
