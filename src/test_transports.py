@@ -5,57 +5,60 @@ Test script for verifying all transport modes of the Perplexica MCP server.
 
 import asyncio
 import json
-import requests
+import httpx
 import subprocess
 import time
 import sys
 import os
 
-def test_http_transport(host: str = "localhost", port: int = 3002) -> bool:
+async def test_http_transport(host: str = "localhost", port: int = 3002) -> bool:
     """Test HTTP transport by making a direct API call."""
     print(f"Testing HTTP transport on {host}:{port}...")
     
-    try:
-        # Test health endpoint
-        health_response = requests.get(f"http://{host}:{port}/health", timeout=5)
-        if health_response.status_code == 200:
-            print("✓ Health endpoint working")
-        else:
-            print(f"✗ Health endpoint failed: {health_response.status_code}")
-            return False
-        
-        # Test search endpoint
-        search_payload = {
-            "query": "What is artificial intelligence?",
-            "focus_mode": "webSearch",
-            "optimization_mode": "speed"
-        }
-        
-        search_response = requests.post(
-            f"http://{host}:{port}/search",
-            json=search_payload,
-            timeout=30
-        )
-        
-        if search_response.status_code == 200:
-            try:
-                result = search_response.json()
-                if "message" in result or ("error" not in result and result):
-                    print("✓ Search endpoint working")
-                    return True
-                else:
-                    print(f"✗ Search endpoint returned error: {result}")
-                    return False
-            except json.JSONDecodeError as e:
-                print(f"✗ Search endpoint returned invalid JSON: {e}")
+    async with httpx.AsyncClient() as client:
+        try:
+            # Test health endpoint
+            health_response = await client.get(f"http://{host}:{port}/health", timeout=5)
+            if health_response.status_code == 200:
+                print("✓ Health endpoint working")
+            else:
+                print(f"✗ Health endpoint failed: {health_response.status_code}")
                 return False
-        else:
-            print(f"✗ Search endpoint failed: {search_response.status_code}")
-            return False
             
-    except requests.exceptions.RequestException as e:
-        print(f"✗ HTTP transport test failed: {e}")
-        return False
+            # Test search endpoint
+            search_payload = {
+                "query": "What is artificial intelligence?",
+                "focus_mode": "webSearch",
+                "optimization_mode": "speed"
+            }
+            
+            search_response = await client.post(
+                f"http://{host}:{port}/search",
+                json=search_payload,
+                timeout=30
+            )
+            
+            if search_response.status_code == 200:
+                try:
+                    result = search_response.json()
+                    print(f"Debug: Search response: {result}")
+                    if "message" in result or ("error" not in result and result):
+                        print("✓ Search endpoint working")
+                        return True
+                    else:
+                        error_msg = result.get("error", "Unknown error")
+                        print(f"✗ Search endpoint returned error: {error_msg}")
+                        return False
+                except json.JSONDecodeError as e:
+                    print(f"✗ Search endpoint returned invalid JSON: {e}")
+                    return False
+            else:
+                print(f"✗ Search endpoint failed: {search_response.status_code}")
+                return False
+                
+        except httpx.RequestError as e:
+            print(f"✗ HTTP transport test failed: {e}")
+            return False
 
 def _read_line_with_timeout(pipe, timeout=10):
     """Reads a line from a pipe with a timeout."""
@@ -228,40 +231,41 @@ async def test_sse_transport(host: str = "localhost", port: int = 3001) -> bool:
     max_retries = 5
     retry_delay = 2  # Increased delay for SSE server startup
     
-    for i in range(max_retries):
-        try:
-            # Check the SSE endpoint with streaming
-            response = requests.get(f"http://{host}:{port}/sse", timeout=5, stream=True)
-            
-            if response.status_code == 200:
-                # For SSE, we expect a streaming response
-                # Try to read the first few bytes to confirm it's working
-                try:
-                    # Read a small chunk to see if we get SSE data
-                    chunk = next(response.iter_content(chunk_size=100, decode_unicode=True))
-                    if chunk and ("ping" in chunk or "data:" in chunk or "event:" in chunk):
-                        print("✓ SSE endpoint accessible and streaming")
-                        return True
+    async with httpx.AsyncClient() as client:
+        for i in range(max_retries):
+            try:
+                # Check the SSE endpoint with streaming
+                async with client.stream("GET", f"http://{host}:{port}/sse", timeout=5) as response:
+                    if response.status_code == 200:
+                        # For SSE, we expect a streaming response
+                        # Try to read the first few bytes to confirm it's working
+                        try:
+                            # Read a small chunk to see if we get SSE data
+                            async for chunk in response.aiter_text(chunk_size=100):
+                                if chunk and ("ping" in chunk or "data:" in chunk or "event:" in chunk):
+                                    print("✓ SSE endpoint accessible and streaming")
+                                    return True
+                                else:
+                                    print("✓ SSE endpoint accessible")
+                                    return True
+                                break  # Only check first chunk
+                        except Exception:
+                            # No data received, but 200 status means endpoint exists
+                            print("✓ SSE endpoint accessible")
+                            return True
                     else:
-                        print("✓ SSE endpoint accessible")
-                        return True
-                except StopIteration:
-                    # No data received, but 200 status means endpoint exists
-                    print("✓ SSE endpoint accessible")
-                    return True
-            else:
-                print(f"✗ SSE endpoint failed: {response.status_code}")
-                if i == max_retries - 1:  # Last attempt
+                        print(f"✗ SSE endpoint failed: {response.status_code}")
+                        if i == max_retries - 1:  # Last attempt
+                            return False
+            except httpx.RequestError as e:
+                print(f"Attempt {i+1}/{max_retries}: SSE transport test failed: {e}")
+                if i < max_retries - 1:
+                    print(f"Waiting {retry_delay} seconds before retry...")
+                    await asyncio.sleep(retry_delay)
+                else:
                     return False
-        except requests.exceptions.RequestException as e:
-            print(f"Attempt {i+1}/{max_retries}: SSE transport test failed: {e}")
-            if i < max_retries - 1:
-                print(f"Waiting {retry_delay} seconds before retry...")
-                time.sleep(retry_delay)
-            else:
-                return False
-    
-    return False  # All retries exhausted
+        
+        return False  # All retries exhausted
 
 def run_server_background(transport: str, **kwargs) -> subprocess.Popen:
     """Start a server in the background for testing."""
@@ -276,9 +280,31 @@ def run_server_background(transport: str, **kwargs) -> subprocess.Popen:
     if transport in ["http", "all"]:
         cmd.extend(["--http-port", str(kwargs.get("http_port", 3002))])
     
-    return subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    # Pass current environment variables to subprocess so it can access .env file
+    env = os.environ.copy()
+    
+    return subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=env)
 
-def main():
+async def wait_for_server_ready(host: str, port: int, max_retries: int = 10, retry_delay: float = 0.5) -> bool:
+    """Wait for server to be ready by polling the health endpoint."""
+    async with httpx.AsyncClient() as client:
+        for i in range(max_retries):
+            try:
+                response = await client.get(f"http://{host}:{port}/health", timeout=2)
+                if response.status_code == 200:
+                    print(f"✓ Server ready on {host}:{port} after {i+1} attempts")
+                    return True
+            except httpx.RequestError:
+                # Server not ready yet, continue polling
+                pass
+            
+            if i < max_retries - 1:  # Don't sleep on the last attempt
+                await asyncio.sleep(retry_delay)
+        
+        print(f"✗ Server on {host}:{port} not ready after {max_retries} attempts")
+        return False
+
+async def main():
     """Run all transport tests."""
     print("Perplexica MCP Server Transport Tests")
     print("=" * 40)
@@ -291,36 +317,52 @@ def main():
     # Test HTTP transport
     print("\nStarting HTTP server for testing...")
     http_server = run_server_background("http", host="localhost", http_port=3002)
-    time.sleep(3)  # Give server time to start
     
+    # Wait for server to be ready instead of fixed sleep
+    server_ready = await wait_for_server_ready("localhost", 3002, max_retries=20, retry_delay=0.5)
+    
+    if not server_ready:
+        # Check if server process failed
+        if http_server.poll() is not None:
+            print(f"✗ HTTP server failed to start. Exit code: {http_server.returncode}")
+            try:
+                stdout, stderr = http_server.communicate(timeout=2)
+                if stderr:
+                    print(f"Server stderr: {stderr}")
+            except (subprocess.TimeoutExpired, OSError):
+                pass
+        results["http"] = False
+    else:
+        results["http"] = await test_http_transport("localhost", 3002)
+    
+    # Always clean up the HTTP server
     try:
-        results["http"] = test_http_transport("localhost", 3002)
-    finally:
-        try:
-            http_server.terminate()
-            http_server.wait(timeout=5)
-        except subprocess.TimeoutExpired:
-            print("HTTP server didn't terminate gracefully, force killing...")
-            http_server.kill()
-        except Exception as e:
-            print(f"Error terminating HTTP server: {e}")
+        http_server.terminate()
+        http_server.wait(timeout=5)
+    except subprocess.TimeoutExpired:
+        print("HTTP server didn't terminate gracefully, force killing...")
+        http_server.kill()
+    except Exception as e:
+        print(f"Error terminating HTTP server: {e}")
     
     # Test SSE transport
     print("\nStarting SSE server for testing...")
     sse_server = run_server_background("sse", host="localhost", sse_port=3001)
-    time.sleep(5)  # Give SSE server more time to start (it's more complex)
     
+    # Wait for SSE server to be ready instead of fixed sleep
+    # Note: SSE endpoint might not have a health endpoint, so we'll use the existing test function
+    # which already has retry logic built in
+    results["sse"] = await test_sse_transport("localhost", 3001)
+    
+    # Always clean up the SSE server
     try:
-        results["sse"] = asyncio.run(test_sse_transport("localhost", 3001))
-    finally:
-        try:
-            sse_server.terminate()
-            sse_server.wait(timeout=5)
-        except subprocess.TimeoutExpired:
-            print("SSE server didn't terminate gracefully, force killing...")
-            sse_server.kill()
-        except Exception as e:
-            print(f"Error terminating SSE server: {e}")
+        sse_server.terminate()
+        sse_server.wait(timeout=5)
+    except subprocess.TimeoutExpired:
+        print("SSE server didn't terminate gracefully, force killing...")
+        sse_server.kill()
+    except Exception as e:
+        print(f"Error terminating SSE server: {e}")
     
     # Print results
     print("\n" + "=" * 40)
@@ -337,4 +379,4 @@ def main():
     return 0 if all_passed else 1
 
 if __name__ == "__main__":
-    sys.exit(main())
+    sys.exit(asyncio.run(main()))

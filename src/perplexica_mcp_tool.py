@@ -3,7 +3,7 @@
 import os
 import asyncio
 import argparse
-import requests
+import httpx
 from dotenv import load_dotenv
 from mcp.server.fastmcp import FastMCP
 from mcp.server import Server
@@ -22,12 +22,12 @@ load_dotenv()
 PERPLEXICA_BACKEND_URL = os.getenv('PERPLEXICA_BACKEND_URL', 'http://localhost:3000/api/search')
 
 # Create FastMCP server for stdio transport
-mcp = FastMCP("Perplexica", dependencies=["requests", "mcp", "python-dotenv", "uvicorn", "fastapi"])
+mcp = FastMCP("Perplexica", dependencies=["httpx", "mcp", "python-dotenv", "uvicorn", "fastapi"])
 
 # Create standard MCP server for SSE and HTTP transports
 server = Server("perplexica-mcp")
 
-def perplexica_search(
+async def perplexica_search(
     query, focus_mode,
     chat_model=None,
     embedding_model=None,
@@ -79,16 +79,17 @@ def perplexica_search(
     if stream:
         payload['stream'] = stream
 
-    response = requests.post(url, json=payload)
-    response.raise_for_status()
-    return response.json()
+    async with httpx.AsyncClient(timeout=30.0) as client:
+        response = await client.post(url, json=payload)
+        response.raise_for_status()
+        return response.json()
 
 # Add the search tool to FastMCP (for stdio)
 @mcp.tool(
     name="search",
     description="Search using Perplexica's AI-powered search engine"
 )
-def search(
+async def search(
     query: Annotated[str, Field(description="Search query string")],
     focus_mode: Annotated[str, Field(description="Focus mode, must be one of: 'webSearch', 'academicSearch', 'writingAssistant', 'wolframAlphaSearch', 'youtubeSearch', 'redditSearch'")],
     chat_model: Annotated[str, Field(description="Chat model configuration with provider (e.g., openai, ollama), name (e.g., gpt-4o-mini), and optional customOpenAIBaseURL and customOpenAIKey", default=None)],
@@ -114,7 +115,7 @@ def search(
     Returns:
         dict: The search results
     """
-    return perplexica_search(
+    return await perplexica_search(
         query=query,
         focus_mode=focus_mode,
         chat_model=chat_model,
@@ -194,7 +195,7 @@ async def handle_call_tool(name: str, arguments: dict) -> Sequence[TextContent]:
     """Handle tool calls."""
     if name == "search":
         try:
-            result = perplexica_search(
+            result = await perplexica_search(
                 query=arguments["query"],
                 focus_mode=arguments["focus_mode"],
                 chat_model=arguments.get("chat_model"),
@@ -217,7 +218,7 @@ app = FastAPI(title="Perplexica MCP Server")
 async def http_search(request: dict):
     """HTTP endpoint for search functionality."""
     try:
-        result = perplexica_search(
+        result = await perplexica_search(
             query=request["query"],
             focus_mode=request["focus_mode"],
             chat_model=request.get("chat_model"),
@@ -229,7 +230,8 @@ async def http_search(request: dict):
         )
         return result
     except Exception as e:
-        return {"error": str(e)}
+        error_msg = str(e) if str(e) else f"{type(e).__name__}: {repr(e)}"
+        return {"error": error_msg}
 
 @app.get("/health")
 async def health_check():
