@@ -12,48 +12,18 @@ import sys
 import os
 
 async def test_http_transport(host: str = "localhost", port: int = 3002) -> bool:
-    """Test HTTP transport by making a direct API call."""
+    """Test HTTP transport by checking MCP endpoint."""
     print(f"Testing HTTP transport on {host}:{port}...")
     
     async with httpx.AsyncClient() as client:
         try:
-            # Test health endpoint
-            health_response = await client.get(f"http://{host}:{port}/health", timeout=5)
-            if health_response.status_code == 200:
-                print("✓ Health endpoint working")
+            # Test MCP endpoint - should return 307 redirect for Streamable HTTP
+            mcp_response = await client.get(f"http://{host}:{port}/mcp", timeout=5, follow_redirects=False)
+            if mcp_response.status_code == 307:
+                print("✓ MCP endpoint working (307 redirect as expected)")
+                return True
             else:
-                print(f"✗ Health endpoint failed: {health_response.status_code}")
-                return False
-            
-            # Test search endpoint
-            search_payload = {
-                "query": "What is artificial intelligence?",
-                "focus_mode": "webSearch",
-                "optimization_mode": "speed"
-            }
-            
-            search_response = await client.post(
-                f"http://{host}:{port}/search",
-                json=search_payload,
-                timeout=30
-            )
-            
-            if search_response.status_code == 200:
-                try:
-                    result = search_response.json()
-                    print(f"Debug: Search response: {result}")
-                    if "message" in result or ("error" not in result and result):
-                        print("✓ Search endpoint working")
-                        return True
-                    else:
-                        error_msg = result.get("error", "Unknown error")
-                        print(f"✗ Search endpoint returned error: {error_msg}")
-                        return False
-                except json.JSONDecodeError as e:
-                    print(f"✗ Search endpoint returned invalid JSON: {e}")
-                    return False
-            else:
-                print(f"✗ Search endpoint failed: {search_response.status_code}")
+                print(f"✗ MCP endpoint failed: {mcp_response.status_code}")
                 return False
                 
         except httpx.RequestError as e:
@@ -92,7 +62,7 @@ def test_stdio_transport() -> bool:
     print("Testing stdio transport...")
     process = None
     try:
-        cmd = [sys.executable, "src/perplexica_mcp_tool.py", "--transport", "stdio"]
+        cmd = [sys.executable, "src/perplexica_mcp.py", "stdio"]
         env = os.environ.copy()
         env["PYTHONUNBUFFERED"] = "1" # Ensure Python's output is unbuffered
 
@@ -269,16 +239,16 @@ async def test_sse_transport(host: str = "localhost", port: int = 3001) -> bool:
 
 def run_server_background(transport: str, **kwargs) -> subprocess.Popen:
     """Start a server in the background for testing."""
-    cmd = [sys.executable, "src/perplexica_mcp_tool.py", "--transport", transport]
+    cmd = [sys.executable, "src/perplexica_mcp.py", transport]
     
     if transport in ["sse", "http", "all"]:
-        cmd.extend(["--host", kwargs.get("host", "localhost")])
+        cmd.extend([kwargs.get("host", "localhost")])
         
     if transport in ["sse", "all"]:
-        cmd.extend(["--sse-port", str(kwargs.get("sse_port", 3001))])
+        cmd.extend([str(kwargs.get("sse_port", 3001))])
         
     if transport in ["http", "all"]:
-        cmd.extend(["--http-port", str(kwargs.get("http_port", 3002))])
+        cmd.extend([str(kwargs.get("http_port", 3002))])
     
     # Pass current environment variables to subprocess so it can access .env file
     env = os.environ.copy()
@@ -286,12 +256,13 @@ def run_server_background(transport: str, **kwargs) -> subprocess.Popen:
     return subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=env)
 
 async def wait_for_server_ready(host: str, port: int, max_retries: int = 10, retry_delay: float = 0.5) -> bool:
-    """Wait for server to be ready by polling the health endpoint."""
+    """Wait for server to be ready by polling the MCP endpoint."""
     async with httpx.AsyncClient() as client:
         for i in range(max_retries):
             try:
-                response = await client.get(f"http://{host}:{port}/health", timeout=2)
-                if response.status_code == 200:
+                # For HTTP transport, check the MCP endpoint which should return 307 redirect
+                response = await client.get(f"http://{host}:{port}/mcp", timeout=2, follow_redirects=False)
+                if response.status_code == 307:  # Expected redirect for Streamable HTTP
                     print(f"✓ Server ready on {host}:{port} after {i+1} attempts")
                     return True
             except httpx.RequestError:

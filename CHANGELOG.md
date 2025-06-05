@@ -5,6 +5,37 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.0] - 2025-06-04
+
+### Changed
+
+- **Architecture Migration**: Complete rewrite using FastMCP framework for unified transport handling
+- **Simplified Implementation**: Single server implementation replacing previous multi-transport architecture
+- **Dependencies Update**: Migrated from FastAPI to FastMCP, removed Starlette dependency
+- **Transport Handling**: Unified transport selection through FastMCP's built-in capabilities
+- **Configuration**: Streamlined settings using FastMCP's Settings class
+
+### Improved
+
+- **Code Maintainability**: Significantly reduced codebase complexity with FastMCP integration
+- **Transport Reliability**: Enhanced transport stability through FastMCP's proven implementation
+- **Error Handling**: Better error handling and timeout management
+- **Documentation**: Updated README to reflect current FastMCP-based architecture
+
+### Technical Details
+
+- **FastMCP Integration**: Leverages FastMCP's built-in stdio, SSE, and Streamable HTTP transport support
+- **Unified Server**: Single server instance handles all transport modes through FastMCP
+- **Settings Management**: Centralized configuration using FastMCP Settings
+- **Async Implementation**: Maintained async/await patterns for optimal performance
+- **Docker Compatibility**: Updated Dockerfile for FastMCP-based deployment
+
+### Removed
+
+- **FastAPI Dependency**: No longer needed with FastMCP's built-in HTTP support
+- **Custom Transport Logic**: Replaced with FastMCP's proven transport implementations
+- **Complex Configuration**: Simplified setup with FastMCP's unified approach
+
 ## [0.2.0] - 2025-06-02
 
 ### Added

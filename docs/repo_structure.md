@@ -6,7 +6,7 @@ Here is the suggested new structure for the repository:
 graph TD
     A[perplexica-mcp/]
     A --> B[src/]
-    B --> B1[perplexica_mcp_tool.py]
+    B --> B1[perplexica_mcp.py]
     B --> B2[test_transports.py]
     A --> C[config/]
     C --> C1[nginx.conf]
@@ -26,7 +26,7 @@ graph TD
 ## Explanation of Changes
 
 * **`src/` (or `app/`)**: This directory would contain all the primary application source code.
-  * `perplexica_mcp_tool.py`
+  * `perplexica_mcp.py`
   * `test_transports.py`
 * **`config/`**: This directory would hold configuration files that are not directly part of the application's source code but configure its environment or external services.
   * `nginx.conf`

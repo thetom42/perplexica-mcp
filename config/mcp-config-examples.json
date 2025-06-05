@@ -5,7 +5,7 @@
       "mcpServers": {
         "perplexica": {
           "command": "uv",
-          "args": ["run", "/path/to/perplexica-mcp/src/perplexica_mcp_tool.py", "--transport", "stdio"],
+          "args": ["run", "/path/to/perplexica-mcp/src/perplexica_mcp.py", "--transport", "stdio"],
           "env": {
             "PERPLEXICA_BACKEND_URL": "http://localhost:3000/api/search"
           }
@@ -20,7 +20,7 @@
       "mcpServers": {
         "perplexica": {
           "command": "uv",
-          "args": ["run", "/path/to/perplexica-mcp/src/perplexica_mcp_tool.py", "--transport", "sse", "--host", "localhost", "--sse-port", "3001"],
+          "args": ["run", "/path/to/perplexica-mcp/src/perplexica_mcp.py", "--transport", "sse", "--host", "localhost", "--sse-port", "3001"],
           "env": {
             "PERPLEXICA_BACKEND_URL": "http://localhost:3000/api/search"
           }
@@ -35,7 +35,7 @@
       "servers": {
         "perplexica": {
           "command": "uv",
-          "args": ["run", "/path/to/perplexica-mcp/src/perplexica_mcp_tool.py", "--transport", "stdio"],
+          "args": ["run", "/path/to/perplexica-mcp/src/perplexica_mcp.py", "--transport", "stdio"],
           "env": {
             "PERPLEXICA_BACKEND_URL": "http://localhost:3000/api/search"
           }

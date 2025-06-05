@@ -1,0 +1,30 @@
+services:
+  perplexica-mcp:
+    build: .
+    image: perplexica-mcp-sse
+    container_name: perplexica-mcp-sse
+    ports:
+      - "3001:3001"
+    environment:
+      - PERPLEXICA_BACKEND_URL=http://perplexica-app:3000/api/search
+    #env_file:
+    #  - .env
+    command: python src/perplexica_mcp.py sse  # SSE transport
+    restart: unless-stopped
+    networks:
+      - backend
+    healthcheck:
+      test: [
+        "CMD", 
+        "python", 
+        "-c", 
+        "import urllib.request; req = urllib.request.Request('http://localhost:3001/sse'); req.add_header('Accept', 'text/event-stream'); urllib.request.urlopen(req, timeout=5)"
+      ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+networks:
+  backend:
+    external: true

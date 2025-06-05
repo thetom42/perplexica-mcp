@@ -8,7 +8,7 @@ This is a Model Context Protocol (MCP) server that acts as a proxy to Perplexica
 
 ## Key Architecture
 
-- **Single Module Structure**: The entire MCP server is implemented in `perplexica_mcp_tool.py`
+- **Single Module Structure**: The entire MCP server is implemented in `perplexica_mcp.py`
 - **FastMCP Framework**: Uses the FastMCP library for MCP server implementation
 - **API Proxy Pattern**: Acts as a pass-through proxy to the Perplexica backend at `/api/search`
 - **Environment-based Configuration**: Backend URL configured via `PERPLEXICA_BACKEND_URL` environment variable
@@ -24,13 +24,13 @@ pip install -e .
 ### Running the MCP Server
 
 ```bash
-python perplexica_mcp_tool.py
+python perplexica_mcp.py
 ```
 
 ### Running via uv (recommended for MCP clients)
 
 ```bash
-uv run perplexica_mcp_tool.py
+uv run perplexica_mcp.py
 ```
 
 ## Configuration

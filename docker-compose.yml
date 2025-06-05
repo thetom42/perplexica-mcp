@@ -1,65 +1,30 @@
 services:
-  # Perplexica MCP Server with all transports
   perplexica-mcp:
     build: .
-    container_name: perplexica-mcp-all
-    ports:
-      - "3001:3001"  # SSE transport
-      - "3002:3002"  # HTTP transport
-    env_file:
-      - .env
-    command: python src/perplexica_mcp_tool.py --transport all --host 0.0.0.0 --sse-port 3001 --http-port 3002
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3002/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
-
-  # Separate HTTP-only service for scaling
-  perplexica-mcp-http:
-    build: .
+    image: perplexica-mcp-http
     container_name: perplexica-mcp-http
     ports:
-      - "3003:3002"  # Map to different host port
-    env_file:
-      - .env
-    command: python src/perplexica_mcp_tool.py --transport http --host 0.0.0.0 --http-port 3002
+      - "3001:3001"
+    environment:
+      - PERPLEXICA_BACKEND_URL=http://perplexica-app:3000/api/search
+    #env_file:
+    #  - .env
+    command: python src/perplexica_mcp.py http  # Streamable HTTP transport
     restart: unless-stopped
+    networks:
+      - backend
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3002/health"]
+      test: [
+        "CMD", 
+        "python", 
+        "-c", 
+        "import urllib.request, json; req = urllib.request.Request('http://localhost:3001/mcp/', data=json.dumps({'jsonrpc': '2.0', 'method': 'initialize', 'params': {'protocolVersion': '2024-11-05', 'capabilities': {}, 'clientInfo': {'name': 'healthcheck', 'version': '1.0.0'}}, 'id': 1}).encode(), headers={'Content-Type': 'application/json', 'Accept': 'application/json, text/event-stream'}); urllib.request.urlopen(req)"
+      ]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 40s
 
-  # Separate SSE-only service
-  perplexica-mcp-sse:
-    build: .
-    container_name: perplexica-mcp-sse
-    ports:
-      - "3004:3001"  # Map to different host port
-    env_file:
-      - .env
-    command: python src/perplexica_mcp_tool.py --transport sse --host 0.0.0.0 --sse-port 3001
-    restart: unless-stopped
-
-  # Nginx reverse proxy for load balancing
-  nginx:
-    image: nginx:alpine
-    container_name: perplexica-mcp-proxy
-    ports:
-      - "8080:80"
-    volumes:
-      - ./config/nginx.conf:/etc/nginx/nginx.conf:ro
-    depends_on:
-      - perplexica-mcp
-      - perplexica-mcp-http
-      - perplexica-mcp-sse
-    restart: unless-stopped
-
 networks:
-  default:
-    name: perplexica-network
-    external: false
+  backend:
+    external: true

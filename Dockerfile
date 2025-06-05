@@ -29,4 +29,4 @@ EXPOSE 3001 3002
 ENV PERPLEXICA_BACKEND_URL=http://localhost:3000/api/search
 
 # Default command (can be overridden)
-CMD ["python", "src/perplexica_mcp_tool.py", "--transport", "all", "--host", "0.0.0.0", "--sse-port", "3001", "--http-port", "3002"]
+CMD ["python", "src/perplexica_mcp.py", "http", "0.0.0.0", "3001"]
