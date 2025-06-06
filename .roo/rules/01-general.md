@@ -12,7 +12,6 @@ This is a Model Context Protocol (MCP) server that provides AI assistants with a
 - Use mcp-server-firecrawl tool to scrape web pages when necessary
 - Use github tool for actions on remote repositories
 - Use git tool for actions on local repositories
-- Use perplexica tool for research and information gathering
 
 ## Testing
 
@@ -23,15 +22,14 @@ This is a Model Context Protocol (MCP) server that provides AI assistants with a
 
 ## Miscellaneous
 
-- Keep [`README.md`](README.md:1) up-to-date with installation and usage instructions
-- Document all configuration options
-- Update [`CHANGELOG.md`](CHANGELOG.md:1) for all releases
-- Use conventional commit format: `type(scope): description`
-- Use [`.env`](README.md:51) files for local development
-- Document all environment variables in [`README.md`](README.md:47)
+- Keep README.md up-to-date with installation and usage instructions
+- Document all environment variables in README.md
+- Document all configuration options in README.md
+- Update CHANGELOG.md with release notes
+- Use conventional commit format: `type(scope): description (issue#)`
+- Use .env files for local development
 - Follow semantic versioning (SemVer)
-- Update version in [`pyproject.toml`](pyproject.toml:3)
+- Update version in pyproject.toml
 - Tag releases in Git
-- Update [`CHANGELOG.md`](CHANGELOG.md:1) with release notes
 - Use `uv` for dependency management
 - Always use `uv run` for running Python implementations
