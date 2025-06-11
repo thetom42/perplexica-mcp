@@ -5,6 +5,102 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.4] - 2025-06-11
+
+### Changed
+
+- **Package Structure**: Refactored package organization to follow Python best practices
+- **Code Organization**: Moved main server implementation from `__init__.py` to dedicated `server.py` module
+- **Clean Package Init**: Updated `__init__.py` to properly export main function without containing implementation code
+
+### Added
+
+- **Module Execution Support**: Added `__main__.py` to enable `python -m perplexica_mcp` execution
+- **Test Compatibility**: Updated test script to work with new package structure
+
+### Fixed
+
+- **Test Script**: Fixed `src/test_transports.py` to use new module execution format
+- **Module Import**: Ensured package can be executed both as console script and Python module
+
+### Technical Details
+
+- **Module Separation**: Main server code now in `src/perplexica_mcp/server.py`
+- **Package Exports**: Clean `__init__.py` that only exports necessary functions
+- **Entry Point**: Maintained proper console script entry point through package imports
+- **Module Execution**: Added `__main__.py` for `python -m` compatibility
+
+## [0.3.3] - 2025-06-11
+
+### Fixed
+
+- **PyPI Installation Issue**: Fixed ModuleNotFoundError when installing from PyPI
+- **Package Structure**: Restructured package to use proper `perplexica_mcp` module name (underscores instead of hyphens)
+- **Entry Point**: Corrected console script entry point to match package structure
+- **Module Import**: Fixed import path for proper module resolution in installed packages
+
+### Changed
+
+- **Package Layout**: Moved main module to `src/perplexica_mcp/__init__.py` for proper package structure
+- **Build Configuration**: Updated hatchling configuration to handle hyphenated package names correctly
+
+### Technical Details
+
+- **Module Resolution**: Package now correctly resolves as `perplexica_mcp` module when installed
+- **Console Script**: Entry point now properly references `perplexica_mcp:main`
+- **Package Discovery**: Fixed package discovery for PyPI installations using uvx
+
+## [0.3.2] - 2025-06-11
+
+### Added
+
+- **PyPI Publishing Ready**: Complete package structure for PyPI publication
+- **uvx Compatibility**: Full support for uvx execution with proper entry points
+- **Package Structure**: Added proper `__init__.py` with module exports
+- **MANIFEST.in**: Added source distribution control file
+- **Publishing Documentation**: Added comprehensive `PUBLISHING.md` guide
+
+### Changed
+
+- **Entry Point Configuration**: Fixed console script entry point for proper PyPI installation
+- **Package Build Configuration**: Enhanced pyproject.toml with proper sdist settings
+- **Documentation**: Updated README.md with PyPI installation instructions and uvx usage examples
+- **Installation Methods**: Added both PyPI and source installation options throughout documentation
+
+### Fixed
+
+- **Console Script**: Corrected entry point from `"perplexica_mcp:main"` to `"src.perplexica_mcp:main"`
+- **Package Discovery**: Fixed package structure for proper Python module resolution
+- **Build System**: Enhanced hatchling configuration for reliable package building
+
+### Technical Details
+
+- **uvx Support**: Package now works seamlessly with `uvx perplexica-mcp` commands
+- **PyPI Metadata**: Complete metadata configuration for package discovery and installation
+- **Build Verification**: Tested successful package building and uvx execution
+- **Source Distribution**: Proper file inclusion for source distributions
+
+## [0.3.1] - 2025-06-06
+
+### Added
+
+- **PyPI Deployment Support**: Complete pyproject.toml configuration for PyPI publishing
+- **Build System Configuration**: Added Hatchling build backend with proper file inclusion
+- **Project Metadata**: Added comprehensive metadata including description, authors, classifiers, and URLs
+- **Development Dependencies**: Added optional development dependencies for testing and linting
+
+### Changed
+
+- **Package Structure**: Configured Hatchling to properly handle src/ directory layout
+- **Version**: Bumped to 0.3.1 for PyPI deployment readiness
+
+### Technical Details
+
+- **Build Backend**: Uses Hatchling for modern Python packaging standards
+- **PyPI Classifiers**: Added appropriate trove classifiers for package discovery
+- **Project URLs**: Added links to homepage, repository, issues, and documentation
+- **License**: Properly configured MIT license for PyPI display
+
 ## [0.3.0] - 2025-06-04
 
 ### Changed

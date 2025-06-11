@@ -208,3 +208,6 @@ Thumbs.db
 
 # uv
 uv.lock
+
+# PiPi
+.pypirc

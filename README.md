@@ -12,9 +12,21 @@ A Model Context Protocol (MCP) server that provides search functionality using P
 
 ## Installation
 
+### From PyPI (Recommended)
+
+```bash
+# Install directly from PyPI
+pip install perplexica-mcp
+
+# Or using uvx for isolated execution
+uvx perplexica-mcp --help
+```
+
+### From Source
+
 ```bash
 # Clone the repository
-git clone <repository-url>
+git clone https://github.com/thetom42/perplexica-mcp.git
 cd perplexica-mcp
 
 # Install dependencies
@@ -33,6 +45,21 @@ Add the following to your Claude Desktop configuration file:
 
 **Location**: `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS) or `%APPDATA%\Claude\claude_desktop_config.json` (Windows)
 
+```json
+{
+  "mcpServers": {
+    "perplexica": {
+      "command": "uvx",
+      "args": ["perplexica-mcp", "stdio"],
+      "env": {
+        "PERPLEXICA_BACKEND_URL": "http://localhost:3000/api/search"
+      }
+    }
+  }
+}
+```
+
+**Alternative (from source):**
 ```json
 {
   "mcpServers": {
@@ -75,6 +102,21 @@ Add to your Cursor MCP configuration:
 {
   "servers": {
     "perplexica": {
+      "command": "uvx",
+      "args": ["perplexica-mcp", "stdio"],
+      "env": {
+        "PERPLEXICA_BACKEND_URL": "http://localhost:3000/api/search"
+      }
+    }
+  }
+}
+```
+
+**Alternative (from source):**
+```json
+{
+  "servers": {
+    "perplexica": {
       "command": "uv",
       "args": ["run", "/path/to/perplexica-mcp/src/perplexica_mcp.py", "stdio"],
       "env": {
@@ -90,7 +132,10 @@ Add to your Cursor MCP configuration:
 For any MCP client supporting stdio transport:
 
 ```bash
-# Command to run the server
+# Command to run the server (PyPI installation)
+uvx perplexica-mcp stdio
+
+# Command to run the server (from source)
 uv run /path/to/perplexica-mcp/src/perplexica_mcp.py stdio
 
 # Environment variables
@@ -100,7 +145,10 @@ PERPLEXICA_BACKEND_URL=http://localhost:3000/api/search
 For HTTP/SSE transport clients:
 
 ```bash
-# Start the server
+# Start the server (PyPI installation)
+uvx perplexica-mcp sse  # or 'http'
+
+# Start the server (from source)
 uv run /path/to/perplexica-mcp/src/perplexica_mcp.py sse  # or 'http'
 
 # Connect to endpoints
@@ -116,11 +164,11 @@ HTTP: http://localhost:3002/mcp/
    - Use **stdio** for most MCP clients (Claude Desktop, Cursor)
    - Use **SSE** for web-based clients or real-time applications
    - Use **HTTP** for REST API integrations
-4. **Dependencies**: Ensure `uv` is installed and available in your PATH
+4. **Dependencies**: Ensure `uvx` is installed and available in your PATH (or `uv` for source installations)
 
 ### Troubleshooting
 
-- **Server not starting**: Check that `uv` is installed and the path is correct
+- **Server not starting**: Check that `uvx` (or `uv` for source) is installed and the path is correct
 - **Connection refused**: Verify Perplexica is running and accessible at the configured URL
 - **Permission errors**: Ensure the MCP client has permission to execute the server command
 - **Environment variables**: Check that `PERPLEXICA_BACKEND_URL` is properly set
@@ -140,12 +188,20 @@ The server supports three transport modes:
 ### 1. Stdio Transport
 
 ```bash
+# PyPI installation
+uvx perplexica-mcp stdio
+
+# From source
 uv run src/perplexica_mcp.py stdio
 ```
 
 ### 2. SSE Transport
 
 ```bash
+# PyPI installation
+uvx perplexica-mcp sse [host] [port]
+
+# From source
 uv run src/perplexica_mcp.py sse [host] [port]
 # Default: localhost:3001, endpoint: /sse
 ```
@@ -153,6 +209,10 @@ uv run src/perplexica_mcp.py sse [host] [port]
 ### 3. Streamable HTTP Transport
 
 ```bash
+# PyPI installation
+uvx perplexica-mcp http [host] [port]
+
+# From source
 uv run src/perplexica_mcp.py http [host] [port]
 # Default: localhost:3002, endpoint: /mcp
 ```
