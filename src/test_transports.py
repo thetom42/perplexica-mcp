@@ -62,7 +62,9 @@ def test_stdio_transport() -> bool:
     print("Testing stdio transport...")
     process = None
     try:
-        cmd = [sys.executable, "-m", "perplexica_mcp", "stdio"]
+        # Execute server.py directly instead of using the package
+        server_path = os.path.join(os.path.dirname(__file__), "perplexica_mcp", "server.py")
+        cmd = [sys.executable, server_path, "stdio"]
         env = os.environ.copy()
         env["PYTHONUNBUFFERED"] = "1" # Ensure Python's output is unbuffered
 
@@ -239,7 +241,9 @@ async def test_sse_transport(host: str = "localhost", port: int = 3001) -> bool:
 
 def run_server_background(transport: str, **kwargs) -> subprocess.Popen:
     """Start a server in the background for testing."""
-    cmd = [sys.executable, "-m", "perplexica_mcp", transport]
+    # Execute server.py directly instead of using the package
+    server_path = os.path.join(os.path.dirname(__file__), "perplexica_mcp", "server.py")
+    cmd = [sys.executable, server_path, transport]
     
     if transport in ["sse", "http", "all"]:
         cmd.extend([kwargs.get("host", "localhost")])
