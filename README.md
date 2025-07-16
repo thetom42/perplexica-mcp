@@ -12,11 +12,13 @@ A Model Context Protocol (MCP) server that provides search functionality using P
 
 ## Development Environment
 
-**Important**: This project requires the use of the `container-use` MCP server for all development operations. All file operations, code changes, and shell commands must be executed within container-use environments.
+### For Claude Code Users
 
-### Working with Container-Use
+**Important**: If you are using Claude Code for development, this project requires the use of the `container-use` MCP server for all development operations. All file operations, code changes, and shell commands must be executed within container-use environments.
 
-When contributing to this project, you must:
+#### Working with Container-Use (Claude Code Only)
+
+When contributing to this project using Claude Code, you must:
 
 1. **Use Container-Use Only**: All file operations, code editing, and shell commands must be performed using container-use environments
 2. **View Your Work**: After making changes, inform others how to access your work:
@@ -24,7 +26,7 @@ When contributing to this project, you must:
    - Use `container-use checkout <env_id>` to check out your environment
 3. **No Local Operations**: Do not perform file operations directly on the local filesystem
 
-### Example Development Workflow
+#### Example Development Workflow (Claude Code)
 
 ```bash
 # Create a new environment for your work
@@ -38,7 +40,11 @@ container-use log <your-env-id>
 container-use checkout <your-env-id>
 ```
 
-This ensures consistency, reproducibility, and proper version control for all development activities.
+This ensures consistency, reproducibility, and proper version control for all development activities when using Claude Code.
+
+### For Other Development Environments
+
+If you are not using Claude Code, you can develop normally using your preferred tools and IDE. The container-use requirement does not apply to regular development workflows.
 
 ## Installation
 
@@ -444,11 +450,11 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 ## Contributing
 
 1. Fork the repository
-2. Create a feature branch using container-use environments
-3. Make your changes within the container-use environment
+2. Create a feature branch (using container-use environments if using Claude Code)
+3. Make your changes (within container-use environment if using Claude Code)
 4. Add tests if applicable
 5. Submit a pull request
-6. Provide access to your work via `container-use log <env_id>` and `container-use checkout <env_id>`
+6. If using Claude Code, provide access to your work via `container-use log <env_id>` and `container-use checkout <env_id>`
 
 ## Support
 
