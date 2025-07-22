@@ -101,7 +101,7 @@ Add the following to your Claude Desktop configuration file:
   "mcpServers": {
     "perplexica": {
       "command": "uv",
-      "args": ["run", "/path/to/perplexica-mcp/src/perplexica_mcp.py", "stdio"],
+      "args": ["run", "/path/to/perplexica-mcp/src/perplexica_mcp/server.py", "stdio"],
       "env": {
         "PERPLEXICA_BACKEND_URL": "http://localhost:3000/api/search"
       }
@@ -154,7 +154,7 @@ Add to your Cursor MCP configuration:
   "servers": {
     "perplexica": {
       "command": "uv",
-      "args": ["run", "/path/to/perplexica-mcp/src/perplexica_mcp.py", "stdio"],
+      "args": ["run", "/path/to/perplexica-mcp/src/perplexica_mcp/server.py", "stdio"],
       "env": {
         "PERPLEXICA_BACKEND_URL": "http://localhost:3000/api/search"
       }
@@ -172,7 +172,7 @@ For any MCP client supporting stdio transport:
 uvx perplexica-mcp stdio
 
 # Command to run the server (from source)
-uv run /path/to/perplexica-mcp/src/perplexica_mcp.py stdio
+uv run /path/to/perplexica-mcp/src/perplexica_mcp/server.py stdio
 
 # Environment variables
 PERPLEXICA_BACKEND_URL=http://localhost:3000/api/search
@@ -185,7 +185,7 @@ For HTTP/SSE transport clients:
 uvx perplexica-mcp sse  # or 'http'
 
 # Start the server (from source)
-uv run /path/to/perplexica-mcp/src/perplexica_mcp.py sse  # or 'http'
+uv run /path/to/perplexica-mcp/src/perplexica_mcp/server.py sse  # or 'http'
 
 # Connect to endpoints
 SSE: http://localhost:3001/sse
