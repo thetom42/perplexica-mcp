@@ -10,13 +10,13 @@ RUN apk add --no-cache \
     musl-dev
 
 # Copy requirements first for better caching
-COPY pyproject.toml ./
-
-# Install Python dependencies using uv
-RUN pip install --no-cache-dir -e .
+COPY pyproject.toml README.md LICENSE CHANGELOG.md ./
 
 # Copy application code
 COPY src/ ./src
+
+# Install Python dependencies using uv
+RUN pip install --no-cache-dir -e .
 
 # Create non-root user for security (Alpine compatible)
 RUN adduser -D -u 1000 mcpuser && chown -R mcpuser:mcpuser /app
