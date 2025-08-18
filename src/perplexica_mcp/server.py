@@ -5,7 +5,6 @@ import argparse
 import httpx
 from dotenv import load_dotenv
 from mcp.server.fastmcp import FastMCP
-from mcp.server.fastmcp.server import Settings
 from pydantic import Field
 from typing import Annotated
 import uvicorn
@@ -16,16 +15,8 @@ load_dotenv()
 # Get the backend URL from environment variable or use default
 PERPLEXICA_BACKEND_URL = os.getenv('PERPLEXICA_BACKEND_URL', 'http://localhost:3000/api/search')
 
-# Create FastMCP server with settings for all transports
-settings = Settings(
-    host="0.0.0.0",
-    port=3001,
-    sse_path="/sse",
-    message_path="/messages/",
-    streamable_http_path="/mcp"
-)
-
-mcp = FastMCP("Perplexica", dependencies=["httpx", "mcp", "python-dotenv", "uvicorn"], settings=settings)
+# Create FastMCP server with default settings
+mcp = FastMCP("Perplexica", dependencies=["httpx", "mcp", "python-dotenv", "uvicorn"])
 
 async def perplexica_search(
     query, focus_mode,
