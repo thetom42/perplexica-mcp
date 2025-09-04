@@ -11,6 +11,7 @@ RUN apk add --no-cache \
 
 # Copy requirements first for better caching
 COPY pyproject.toml ./
+COPY README.md ./
 
 # Install Python dependencies using uv
 RUN pip install --no-cache-dir -e .
@@ -29,4 +30,4 @@ EXPOSE 3001 3002
 ENV PERPLEXICA_BACKEND_URL=http://localhost:3000/api/search
 
 # Default command (can be overridden)
-CMD ["python", "src/perplexica_mcp.py", "http", "0.0.0.0", "3001"]
+CMD ["python", "src/perplexica_mcp/server.py", "http", "0.0.0.0", "3001"]

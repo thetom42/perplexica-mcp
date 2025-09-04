@@ -17,15 +17,13 @@ load_dotenv()
 PERPLEXICA_BACKEND_URL = os.getenv('PERPLEXICA_BACKEND_URL', 'http://localhost:3000/api/search')
 
 # Create FastMCP server with settings for all transports
-settings = Settings(
+mcp = FastMCP("Perplexica", dependencies=["httpx", "mcp", "python-dotenv", "uvicorn"],
     host="0.0.0.0",
     port=3001,
     sse_path="/sse",
     message_path="/messages/",
     streamable_http_path="/mcp"
 )
-
-mcp = FastMCP("Perplexica", dependencies=["httpx", "mcp", "python-dotenv", "uvicorn"], settings=settings)
 
 async def perplexica_search(
     query, focus_mode,
