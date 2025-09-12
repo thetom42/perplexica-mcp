@@ -88,7 +88,11 @@ Add the following to your Claude Desktop configuration file:
       "command": "uvx",
       "args": ["perplexica-mcp", "stdio"],
       "env": {
-        "PERPLEXICA_BACKEND_URL": "http://localhost:3000/api/search"
+        "PERPLEXICA_BACKEND_URL": "http://localhost:3000/api/search",
+        "PERPLEXICA_CHAT_MODEL_PROVIDER": "openai",
+        "PERPLEXICA_CHAT_MODEL_NAME": "gpt-4o-mini",
+        "PERPLEXICA_EMBEDDING_MODEL_PROVIDER": "openai",
+        "PERPLEXICA_EMBEDDING_MODEL_NAME": "text-embedding-3-small"
       }
     }
   }
@@ -101,9 +105,13 @@ Add the following to your Claude Desktop configuration file:
   "mcpServers": {
     "perplexica": {
       "command": "uv",
-      "args": ["run", "/path/to/perplexica-mcp/src/perplexica_mcp.py", "stdio"],
+      "args": ["run", "/path/to/perplexica-mcp/src/perplexica_mcp/server.py", "stdio"],
       "env": {
-        "PERPLEXICA_BACKEND_URL": "http://localhost:3000/api/search"
+        "PERPLEXICA_BACKEND_URL": "http://localhost:3000/api/search",
+        "PERPLEXICA_CHAT_MODEL_PROVIDER": "openai",
+        "PERPLEXICA_CHAT_MODEL_NAME": "gpt-4o-mini",
+        "PERPLEXICA_EMBEDDING_MODEL_PROVIDER": "openai",
+        "PERPLEXICA_EMBEDDING_MODEL_NAME": "text-embedding-3-small"
       }
     }
   }
@@ -141,7 +149,11 @@ Add to your Cursor MCP configuration:
       "command": "uvx",
       "args": ["perplexica-mcp", "stdio"],
       "env": {
-        "PERPLEXICA_BACKEND_URL": "http://localhost:3000/api/search"
+        "PERPLEXICA_BACKEND_URL": "http://localhost:3000/api/search",
+        "PERPLEXICA_CHAT_MODEL_PROVIDER": "openai",
+        "PERPLEXICA_CHAT_MODEL_NAME": "gpt-4o-mini",
+        "PERPLEXICA_EMBEDDING_MODEL_PROVIDER": "openai",
+        "PERPLEXICA_EMBEDDING_MODEL_NAME": "text-embedding-3-small"
       }
     }
   }
@@ -154,9 +166,13 @@ Add to your Cursor MCP configuration:
   "servers": {
     "perplexica": {
       "command": "uv",
-      "args": ["run", "/path/to/perplexica-mcp/src/perplexica_mcp.py", "stdio"],
+      "args": ["run", "/path/to/perplexica-mcp/src/perplexica_mcp/server.py", "stdio"],
       "env": {
-        "PERPLEXICA_BACKEND_URL": "http://localhost:3000/api/search"
+        "PERPLEXICA_BACKEND_URL": "http://localhost:3000/api/search",
+        "PERPLEXICA_CHAT_MODEL_PROVIDER": "openai",
+        "PERPLEXICA_CHAT_MODEL_NAME": "gpt-4o-mini",
+        "PERPLEXICA_EMBEDDING_MODEL_PROVIDER": "openai",
+        "PERPLEXICA_EMBEDDING_MODEL_NAME": "text-embedding-3-small"
       }
     }
   }
@@ -172,10 +188,14 @@ For any MCP client supporting stdio transport:
 uvx perplexica-mcp stdio
 
 # Command to run the server (from source)
-uv run /path/to/perplexica-mcp/src/perplexica_mcp.py stdio
+uv run /path/to/perplexica-mcp/src/perplexica_mcp/server.py stdio
 
 # Environment variables
 PERPLEXICA_BACKEND_URL=http://localhost:3000/api/search
+PERPLEXICA_CHAT_MODEL_PROVIDER=openai
+PERPLEXICA_CHAT_MODEL_NAME=gpt-4o-mini
+PERPLEXICA_EMBEDDING_MODEL_PROVIDER=openai
+PERPLEXICA_EMBEDDING_MODEL_NAME=text-embedding-3-small
 ```
 
 For HTTP/SSE transport clients:
@@ -185,7 +205,7 @@ For HTTP/SSE transport clients:
 uvx perplexica-mcp sse  # or 'http'
 
 # Start the server (from source)
-uv run /path/to/perplexica-mcp/src/perplexica_mcp.py sse  # or 'http'
+uv run /path/to/perplexica-mcp/src/perplexica_mcp/server.py sse  # or 'http'
 
 # Connect to endpoints
 SSE: http://localhost:3001/sse
@@ -214,8 +234,32 @@ HTTP: http://localhost:3002/mcp/
 Create a `.env` file in the project root with your Perplexica configuration:
 
 ```env
+# Perplexica Backend Configuration
 PERPLEXICA_BACKEND_URL=http://localhost:3000/api/search
+
+# Default Model Configuration (Optional)
+# If set, these models will be used as defaults when no model is specified in the search request
+
+# Chat Model Configuration
+PERPLEXICA_CHAT_MODEL_PROVIDER=openai
+PERPLEXICA_CHAT_MODEL_NAME=gpt-4o-mini
+
+# Embedding Model Configuration  
+PERPLEXICA_EMBEDDING_MODEL_PROVIDER=openai
+PERPLEXICA_EMBEDDING_MODEL_NAME=text-embedding-3-small
 ```
+
+### Environment Variables
+
+| Variable | Description | Default | Example |
+|----------|-------------|---------|---------|
+| `PERPLEXICA_BACKEND_URL` | URL to Perplexica search API | `http://localhost:3000/api/search` | `http://localhost:3000/api/search` |
+| `PERPLEXICA_CHAT_MODEL_PROVIDER` | Default chat model provider | None | `openai`, `ollama`, `anthropic` |
+| `PERPLEXICA_CHAT_MODEL_NAME` | Default chat model name | None | `gpt-4o-mini`, `claude-3-sonnet` |
+| `PERPLEXICA_EMBEDDING_MODEL_PROVIDER` | Default embedding model provider | None | `openai`, `ollama` |
+| `PERPLEXICA_EMBEDDING_MODEL_NAME` | Default embedding model name | None | `text-embedding-3-small` |
+
+**Note**: The model environment variables are optional. If not set, you'll need to specify models in each search request. When set, they provide convenient defaults that can still be overridden per request.
 
 ## Usage
 
