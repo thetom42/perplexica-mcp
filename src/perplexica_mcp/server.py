@@ -5,7 +5,6 @@ import argparse
 import httpx
 from dotenv import load_dotenv
 from mcp.server.fastmcp import FastMCP
-from mcp.server.fastmcp.server import Settings
 from pydantic import Field
 from typing import Annotated
 import uvicorn
@@ -32,16 +31,8 @@ if os.getenv("PERPLEXICA_EMBEDDING_MODEL_PROVIDER") and os.getenv("PERPLEXICA_EM
         "name": os.getenv("PERPLEXICA_EMBEDDING_MODEL_NAME"),
     }
 
-# Create FastMCP server with settings for all transports
-settings = Settings(
-    host="0.0.0.0",
-    port=3001,
-    sse_path="/sse",
-    message_path="/messages/",
-    streamable_http_path="/mcp"
-)
-
-mcp = FastMCP("Perplexica", dependencies=["httpx", "mcp", "python-dotenv", "uvicorn"], settings=settings)
+# Create FastMCP server with default settings
+mcp = FastMCP("Perplexica", dependencies=["httpx", "mcp", "python-dotenv", "uvicorn"])
 
 async def perplexica_search(
     query, focus_mode,

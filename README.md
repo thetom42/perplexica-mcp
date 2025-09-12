@@ -100,6 +100,7 @@ Add the following to your Claude Desktop configuration file:
 ```
 
 **Alternative (from source):**
+
 ```json
 {
   "mcpServers": {
@@ -123,7 +124,7 @@ Add the following to your Claude Desktop configuration file:
 For SSE transport, first start the server:
 
 ```bash
-uv run src/perplexica_mcp.py sse
+uv run src/perplexica_mcp/server.py sse
 ```
 
 Then configure Claude Desktop:
@@ -161,6 +162,7 @@ Add to your Cursor MCP configuration:
 ```
 
 **Alternative (from source):**
+
 ```json
 {
   "servers": {
@@ -272,7 +274,7 @@ The server supports three transport modes:
 uvx perplexica-mcp stdio
 
 # From source
-uv run src/perplexica_mcp.py stdio
+uv run src/perplexica_mcp/server.py stdio
 ```
 
 ### 2. SSE Transport
@@ -282,7 +284,7 @@ uv run src/perplexica_mcp.py stdio
 uvx perplexica-mcp sse [host] [port]
 
 # From source
-uv run src/perplexica_mcp.py sse [host] [port]
+uv run src/perplexica_mcp/server.py sse [host] [port]
 # Default: localhost:3001, endpoint: /sse
 ```
 
@@ -293,7 +295,7 @@ uv run src/perplexica_mcp.py sse [host] [port]
 uvx perplexica-mcp http [host] [port]
 
 # From source
-uv run src/perplexica_mcp.py http [host] [port]
+uv run src/perplexica_mcp/server.py http [host] [port]
 # Default: localhost:3002, endpoint: /mcp
 ```
 
