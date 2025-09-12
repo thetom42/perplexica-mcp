@@ -15,6 +15,7 @@ load_dotenv()
 
 # Get the backend URL from environment variable or use default
 PERPLEXICA_BACKEND_URL = os.getenv('PERPLEXICA_BACKEND_URL', 'http://localhost:3000/api/search')
+PERPLEXICA_READ_TIMEOUT = int(os.getenv('PERPLEXICA_READ_TIMEOUT', 30))
 
 # Create FastMCP server with settings for all transports
 settings = Settings(
@@ -86,7 +87,7 @@ async def perplexica_search(
             response = await client.post(
                 PERPLEXICA_BACKEND_URL,
                 json=payload,
-                timeout=30.0
+                timeout=PERPLEXICA_READ_TIMEOUT
             )
             response.raise_for_status()
             return response.json()
