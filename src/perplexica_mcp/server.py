@@ -5,7 +5,6 @@ import argparse
 import httpx
 from dotenv import load_dotenv
 from mcp.server.fastmcp import FastMCP
-from mcp.server.fastmcp.server import Settings
 from pydantic import Field
 from typing import Annotated
 import uvicorn
@@ -15,15 +14,25 @@ load_dotenv()
 
 # Get the backend URL from environment variable or use default
 PERPLEXICA_BACKEND_URL = os.getenv('PERPLEXICA_BACKEND_URL', 'http://localhost:3000/api/search')
+PERPLEXICA_READ_TIMEOUT = int(os.getenv('PERPLEXICA_READ_TIMEOUT', 30))
 
-# Create FastMCP server with settings for all transports
-mcp = FastMCP("Perplexica", dependencies=["httpx", "mcp", "python-dotenv", "uvicorn"],
-    host="0.0.0.0",
-    port=3001,
-    sse_path="/sse",
-    message_path="/messages/",
-    streamable_http_path="/mcp"
-)
+# Default model configurations from environment variables
+DEFAULT_CHAT_MODEL = None
+if os.getenv("PERPLEXICA_CHAT_MODEL_PROVIDER") and os.getenv("PERPLEXICA_CHAT_MODEL_NAME"):
+    DEFAULT_CHAT_MODEL = {
+        "provider": os.getenv("PERPLEXICA_CHAT_MODEL_PROVIDER"),
+        "name": os.getenv("PERPLEXICA_CHAT_MODEL_NAME"),
+    }
+
+DEFAULT_EMBEDDING_MODEL = None
+if os.getenv("PERPLEXICA_EMBEDDING_MODEL_PROVIDER") and os.getenv("PERPLEXICA_EMBEDDING_MODEL_NAME"):
+    DEFAULT_EMBEDDING_MODEL = {
+        "provider": os.getenv("PERPLEXICA_EMBEDDING_MODEL_PROVIDER"),
+        "name": os.getenv("PERPLEXICA_EMBEDDING_MODEL_NAME"),
+    }
+
+# Create FastMCP server with default settings
+mcp = FastMCP("Perplexica", dependencies=["httpx", "mcp", "python-dotenv", "uvicorn"])
 
 async def perplexica_search(
     query, focus_mode,
@@ -84,7 +93,7 @@ async def perplexica_search(
             response = await client.post(
                 PERPLEXICA_BACKEND_URL,
                 json=payload,
-                timeout=30.0
+                timeout=PERPLEXICA_READ_TIMEOUT
             )
             response.raise_for_status()
             return response.json()
@@ -97,8 +106,8 @@ async def perplexica_search(
 async def search(
     query: Annotated[str, Field(description="Search query")],
     focus_mode: Annotated[str, Field(description="Focus mode: webSearch, academicSearch, writingAssistant, wolframAlphaSearch, youtubeSearch, redditSearch")],
-    chat_model: Annotated[dict, Field(description="Chat model configuration")] = None,
-    embedding_model: Annotated[dict, Field(description="Embedding model configuration")] = None,
+    chat_model: Annotated[dict, Field(description="Chat model configuration")] = DEFAULT_CHAT_MODEL,
+    embedding_model: Annotated[dict, Field(description="Embedding model configuration")] = DEFAULT_EMBEDDING_MODEL,
     optimization_mode: Annotated[str, Field(description="Optimization mode: speed or balanced")] = None,
     history: Annotated[list, Field(description="Conversation history")] = None,
     system_instructions: Annotated[str, Field(description="Custom system instructions")] = None,
