@@ -274,7 +274,24 @@ Create `.roo/mcp.json` in your project:
 }
 ```
 
-### 4.3 Cursor
+### 4.3 Kilocode
+
+Create `.kilocode/mcp.json` in your project:
+
+```json
+{
+  "mcpServers": {
+    "perplexica": {
+      "type": "streamable-http",
+      "url": "http://localhost:3001/mcp",
+      "alwaysAllow": ["search"],
+      "disabled": false
+    }
+  }
+}
+```
+
+### 4.4 Cursor
 
 Create `.cursor/mcp.json` in your project:
 
@@ -293,13 +310,11 @@ Create `.cursor/mcp.json` in your project:
 }
 ```
 
-### 4.4 Windsurf
+### 4.5 Windsurf
 
-Create `.windsurf/mcp.json` in your project:
+Add this to your `~/.codeium/windsurf/mcp_config.json`:
 
 ```json
-{
-  "servers": {
     "perplexica": {
       "serverUrl": "http://localhost:3001/mcp",
       "headers": {
@@ -307,8 +322,6 @@ Create `.windsurf/mcp.json` in your project:
         "Accept": "application/json, text/event-stream"
       }
     }
-  }
-}
 ```
 
 ## Troubleshooting
