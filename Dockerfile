@@ -23,7 +23,7 @@ RUN adduser -D -u 1000 mcpuser && chown -R mcpuser:mcpuser /app
 USER mcpuser
 
 # Expose ports for SSE and HTTP transports
-EXPOSE 3001 3002
+EXPOSE 3001
 
 # Set default environment variables
 ENV PERPLEXICA_BACKEND_URL=http://localhost:3000/api/search

@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "perplexica-mcp": {
+      "type": "streamable-http",
+      "url": "http://localhost:3001/mcp",
+      "alwaysAllow": ["search"],
+      "disabled": false
+    }
+  }
+}

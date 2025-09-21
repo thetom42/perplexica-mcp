@@ -157,12 +157,8 @@ cython_debug/
 *.ipr
 
 # VS Code
-.vscode/
-!.vscode/settings.json
-!.vscode/tasks.json
-!.vscode/launch.json
-!.vscode/extensions.json
-*.code-workspace
+#.vscode/
+.vscode/settings.json
 
 # Local History for Visual Studio Code
 .history/
@@ -189,13 +185,6 @@ Package Control.merged-ca-bundle
 Package Control.user-ca-bundle
 oscrypto-ca-bundle.crt
 bh_unicode_properties.cache
-
-# Visual Studio Code Config
-.vscode/*
-!.vscode/settings.json
-!.vscode/tasks.json
-!.vscode/launch.json
-!.vscode/extensions.json
 
 # Local History for Visual Studio Code
 .history/

@@ -5,20 +5,18 @@ services:
     container_name: perplexica-mcp-http
     ports:
       - "3001:3001"
-    environment:
-      - PERPLEXICA_BACKEND_URL=http://perplexica-app:3000/api/search
-    #env_file:
-    #  - .env
-    command: python src/perplexica_mcp.py http  # Streamable HTTP transport
+    env_file:
+      - .env
+    command: python src/perplexica_mcp/server.py http  # Streamable HTTP transport
     restart: unless-stopped
     networks:
-      - backend
+      - perplexica-network
     healthcheck:
       test: [
         "CMD", 
         "python", 
         "-c", 
-        "import urllib.request, json; req = urllib.request.Request('http://localhost:3001/mcp/', data=json.dumps({'jsonrpc': '2.0', 'method': 'initialize', 'params': {'protocolVersion': '2024-11-05', 'capabilities': {}, 'clientInfo': {'name': 'healthcheck', 'version': '1.0.0'}}, 'id': 1}).encode(), headers={'Content-Type': 'application/json', 'Accept': 'application/json, text/event-stream'}); urllib.request.urlopen(req)"
+        "import urllib.request, json; req = urllib.request.Request('http://localhost:3001/mcp', data=json.dumps({'jsonrpc': '2.0', 'method': 'initialize', 'params': {'protocolVersion': '2024-11-05', 'capabilities': {}, 'clientInfo': {'name': 'healthcheck', 'version': '1.0.0'}}, 'id': 1}).encode(), headers={'Content-Type': 'application/json', 'Accept': 'application/json, text/event-stream'}); urllib.request.urlopen(req)"
       ]
       interval: 30s
       timeout: 10s
@@ -26,5 +24,5 @@ services:
       start_period: 40s
 
 networks:
-  backend:
+  perplexica-network:
     external: true

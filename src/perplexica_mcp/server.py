@@ -14,7 +14,7 @@ load_dotenv()
 
 # Get the backend URL from environment variable or use default
 PERPLEXICA_BACKEND_URL = os.getenv('PERPLEXICA_BACKEND_URL', 'http://localhost:3000/api/search')
-PERPLEXICA_READ_TIMEOUT = int(os.getenv('PERPLEXICA_READ_TIMEOUT', 30))
+PERPLEXICA_READ_TIMEOUT = int(os.getenv('PERPLEXICA_READ_TIMEOUT', 60))
 
 # Default model configurations from environment variables
 DEFAULT_CHAT_MODEL = None
@@ -81,8 +81,12 @@ async def perplexica_search(
         payload["embeddingModel"] = embedding_model
     if optimization_mode:
         payload["optimizationMode"] = optimization_mode
-    if history:
+    else:
+        payload["optimizationMode"] = "balanced"
+    if history is not None:
         payload["history"] = history
+    else:
+        payload["history"] = []
     if system_instructions:
         payload["systemInstructions"] = system_instructions
     if stream is not None:

@@ -5,14 +5,12 @@ services:
     container_name: perplexica-mcp-sse
     ports:
       - "3001:3001"
-    environment:
-      - PERPLEXICA_BACKEND_URL=http://perplexica-app:3000/api/search
-    #env_file:
-    #  - .env
-    command: python src/perplexica_mcp.py sse  # SSE transport
+    env_file:
+      - .env
+    command: python src/perplexica_mcp/server.py sse  # SSE transport
     restart: unless-stopped
     networks:
-      - backend
+      - perplexica-network
     healthcheck:
       test: [
         "CMD", 
@@ -26,5 +24,5 @@ services:
       start_period: 40s
 
 networks:
-  backend:
+  perplexica-network:
     external: true
