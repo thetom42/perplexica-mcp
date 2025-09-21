@@ -25,8 +25,8 @@ USER mcpuser
 # Expose ports for SSE and HTTP transports
 EXPOSE 3001
 
-# Set default environment variables
-ENV PERPLEXICA_BACKEND_URL=http://localhost:3000/api/search
+# Backend URL must be provided via env (compose/env_file). No container-local default.
+# ENV PERPLEXICA_BACKEND_URL=<set via compose>
 
 # Default command (can be overridden)
 CMD ["python", "src/perplexica_mcp/server.py", "http", "0.0.0.0", "3001"]

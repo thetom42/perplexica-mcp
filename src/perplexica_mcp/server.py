@@ -124,6 +124,10 @@ async def search(
     for different types of searches including web search, academic search, writing assistance,
     and specialized searches for platforms like YouTube and Reddit.
     """
+    # Fail fast if required models are absent
+    if (chat_model or DEFAULT_CHAT_MODEL) is None or (embedding_model or DEFAULT_EMBEDDING_MODEL) is None:
+        return {"error": "Both chatModel and embeddingModel are required. Configure PERPLEXICA_* model env vars or pass them in the request."}
+
     return await perplexica_search(
         query=query,
         focus_mode=focus_mode,
