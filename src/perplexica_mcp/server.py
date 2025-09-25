@@ -44,28 +44,20 @@ async def perplexica_search(
     stream=False
 ) -> dict:
     """
-    Search using the Perplexica API
-
-    Args:
-        query (str): The search query
-        chat_model (dict, optional): Chat model configuration with:
-            provider: Provider name (e.g., openai, ollama)
-            name: Model name (e.g., gpt-4o-mini)
-            customOpenAIBaseURL: Optional custom OpenAI base URL
-            customOpenAIKey: Optional custom OpenAI API key
-        embedding_model (dict, optional): Embedding model configuration with:
-            provider: Provider name (e.g., openai)
-            name: Model name (e.g., text-embedding-3-small)
-            customOpenAIBaseURL: Optional custom OpenAI base URL
-            customOpenAIKey: Optional custom OpenAI API key
-        focus_mode (str): Search focus mode (webSearch, academicSearch, etc.)
-        optimization_mode (str, optional): Optimization mode (speed, balanced)
-        history (list, optional): Conversation history
-        system_instructions (str, optional): Custom system instructions
-        stream (bool, optional): Whether to stream responses
-
+    Perform a search via the Perplexica backend and return its JSON response.
+    
+    Parameters:
+        query: The search query string.
+        focus_mode: The search focus mode (e.g., "webSearch", "academicSearch", "chatOriented", "factChecking", "qa", "summarize").
+        chat_model: Optional chat model configuration object with keys like `provider`, `name`, and optional `customOpenAIBaseURL`/`customOpenAIKey`.
+        embedding_model: Optional embedding model configuration object with keys like `provider`, `name`, and optional `customOpenAIBaseURL`/`customOpenAIKey`.
+        optimization_mode: Optional optimization preference (e.g., "speed", "balanced"); defaults to "balanced" when omitted.
+        history: Optional conversation history; when omitted an empty list is sent.
+        system_instructions: Optional custom system instructions to include in the request.
+        stream: Whether to request streamed responses; when provided (even if False) it is included in the payload.
+    
     Returns:
-        dict: Search results from Perplexica
+        dict: The parsed JSON response from the Perplexica backend, or a dictionary with an `"error"` key on failure.
     """
     
     # Prepare the request payload
@@ -118,11 +110,13 @@ async def search(
     stream: Annotated[bool, Field(description="Whether to stream responses")] = False
 ) -> dict:
     """
-    Search using Perplexica's AI-powered search engine.
+    Perform a Perplexica search using the given query and focus mode.
     
-    This tool provides access to Perplexica's search capabilities with various focus modes
-    for different types of searches including web search, academic search, writing assistance,
-    and specialized searches for platforms like YouTube and Reddit.
+    Supports multiple focus modes (e.g., webSearch, academicSearch, writingAssistant, wolframAlphaSearch, youtubeSearch, redditSearch) and optional streaming. If neither a chat model nor an embedding model is provided (and no corresponding defaults are configured), returns an error immediately indicating both models are required.
+    
+    Returns:
+        dict: Search results on success, or an error dictionary like `{"error": "..."}`
+        describing failures such as missing model configuration or backend request errors.
     """
     # Fail fast if required models are absent
     if (chat_model or DEFAULT_CHAT_MODEL) is None or (embedding_model or DEFAULT_EMBEDDING_MODEL) is None:
