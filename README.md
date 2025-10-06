@@ -73,6 +73,13 @@ uv sync
 
 To use this server with MCP clients, you need to configure the client to connect to the Perplexica MCP server. Below are configuration examples for popular MCP clients.
 
+> **Important**: All transport modes require proper environment variable configuration, especially:
+> - `PERPLEXICA_BACKEND_URL`: URL to your Perplexica backend API
+> - `PERPLEXICA_CHAT_MODEL_PROVIDER` and `PERPLEXICA_CHAT_MODEL_NAME`: Chat model configuration
+> - `PERPLEXICA_EMBEDDING_MODEL_PROVIDER` and `PERPLEXICA_EMBEDDING_MODEL_NAME`: Embedding model configuration
+> 
+> These variables must be set either in your environment or provided in the MCP client configuration.
+
 ### Claude Desktop
 
 #### Stdio Transport (Recommended)
@@ -106,7 +113,8 @@ Add the following to your Claude Desktop configuration file:
   "mcpServers": {
     "perplexica": {
       "command": "uv",
-      "args": ["run", "/path/to/perplexica-mcp/src/perplexica_mcp/server.py", "stdio"],
+      "args": ["run", "python", "-m", "perplexica_mcp", "stdio"],
+      "cwd": "/path/to/perplexica-mcp",
       "env": {
         "PERPLEXICA_BACKEND_URL": "http://localhost:3000/api/search",
         "PERPLEXICA_CHAT_MODEL_PROVIDER": "openai",
@@ -117,6 +125,9 @@ Add the following to your Claude Desktop configuration file:
     }
   }
 }
+```
+
+> **Note**: When running from source, ensure all required environment variables are set. The stdio transport requires proper model provider and model name configuration to communicate with the Perplexica backend.
 ```
 
 #### SSE Transport
@@ -168,7 +179,32 @@ Add to your Cursor MCP configuration:
   "servers": {
     "perplexica": {
       "command": "uv",
-      "args": ["run", "/path/to/perplexica-mcp/src/perplexica_mcp/server.py", "stdio"],
+      "args": ["run", "python", "-m", "perplexica_mcp", "stdio"],
+      "cwd": "/path/to/perplexica-mcp",
+      "env": {
+        "PERPLEXICA_BACKEND_URL": "http://localhost:3000/api/search",
+        "PERPLEXICA_CHAT_MODEL_PROVIDER": "openai",
+        "PERPLEXICA_CHAT_MODEL_NAME": "gpt-4o-mini",
+        "PERPLEXICA_EMBEDDING_MODEL_PROVIDER": "openai",
+        "PERPLEXICA_EMBEDDING_MODEL_NAME": "text-embedding-3-small"
+      }
+    }
+  }
+}
+```
+
+### VS Code (with MCP Extension)
+
+Add to your VS Code MCP configuration file (`.vscode/mcp.json`):
+
+```json
+{
+  "servers": {
+    "perplexica": {
+      "type": "stdio",
+      "command": "uv",
+      "args": ["run", "python", "-m", "perplexica_mcp", "stdio"],
+      "cwd": "/path/to/perplexica-mcp",
       "env": {
         "PERPLEXICA_BACKEND_URL": "http://localhost:3000/api/search",
         "PERPLEXICA_CHAT_MODEL_PROVIDER": "openai",
@@ -189,15 +225,26 @@ For any MCP client supporting stdio transport:
 # Command to run the server (PyPI installation)
 uvx perplexica-mcp stdio
 
-# Command to run the server (from source)
-uv run /path/to/perplexica-mcp/src/perplexica_mcp/server.py stdio
+# Command to run the server with .env file (PyPI installation)
+uvx --env-file .env perplexica-mcp stdio
 
-# Environment variables
-PERPLEXICA_BACKEND_URL=http://localhost:3000/api/search
-PERPLEXICA_CHAT_MODEL_PROVIDER=openai
-PERPLEXICA_CHAT_MODEL_NAME=gpt-4o-mini
-PERPLEXICA_EMBEDDING_MODEL_PROVIDER=openai
-PERPLEXICA_EMBEDDING_MODEL_NAME=text-embedding-3-small
+# Command to run the server (from source)
+uv run python -m perplexica_mcp stdio
+
+# Environment variables (can be exported or set inline)
+export PERPLEXICA_BACKEND_URL=http://localhost:3000/api/search
+export PERPLEXICA_CHAT_MODEL_PROVIDER=openai
+export PERPLEXICA_CHAT_MODEL_NAME=gpt-4o-mini
+export PERPLEXICA_EMBEDDING_MODEL_PROVIDER=openai
+export PERPLEXICA_EMBEDDING_MODEL_NAME=text-embedding-3-small
+
+# Or set inline for single execution (all required vars)
+PERPLEXICA_BACKEND_URL=http://localhost:3000/api/search \
+PERPLEXICA_CHAT_MODEL_PROVIDER=openai \
+PERPLEXICA_CHAT_MODEL_NAME=gpt-4o-mini \
+PERPLEXICA_EMBEDDING_MODEL_PROVIDER=openai \
+PERPLEXICA_EMBEDDING_MODEL_NAME=text-embedding-3-small \
+uvx perplexica-mcp stdio
 ```
 
 For HTTP/SSE transport clients:

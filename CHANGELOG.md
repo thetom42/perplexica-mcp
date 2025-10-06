@@ -5,6 +5,46 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.5] - 2025-09-25
+
+### Fixed
+
+- **Stdio Transport Configuration**: Fixed command structure in README documentation from incorrect path-based execution to proper module execution (`python -m perplexica_mcp`)
+- **Environment Variable Documentation**: Enhanced documentation with proper environment variable configuration requirements for stdio transport
+- **Documentation Path Corrections**: Fixed incorrect file paths in README.md examples (contributed by @dadastory in PR #12)
+- **Docker Container Fixes**: Fixed Dockerfile execution (contributed by @nnWhisperer in PR #16)
+- **Streamlined Build Process**: Fixed Docker image build process
+- **Transport Test Suite**: Fixed `test_transports.py` to properly test all three transport modes:
+  - Fixed command execution from path-based to proper module execution
+  - Added proper environment variable configuration for testing
+  - Fixed HTTP transport test to handle MCP Streamable HTTP SSE-formatted responses
+  - Improved server startup detection and cleanup processes
+  - Added proper Accept headers for MCP Streamable HTTP protocol compliance
+
+### Added
+
+- **VS Code MCP Configuration**: Added dedicated section for VS Code MCP extension configuration
+- **Enhanced Generic Configuration**: Improved generic MCP client configuration with multiple environment variable approaches (export, inline, .env file)
+- **uvx .env Support**: Documented `uvx --env-file .env` support for easier environment variable management
+- **Comprehensive Transport Testing**: All three transport modes (stdio, SSE, HTTP) now pass automated tests
+- **Default Model Configuration**: Added optional environment variables for default chat and embedding model settings (contributed by @ricardoamaro in PR #13)
+- **Configurable Request Timeout**: Added `PERPLEXICA_READ_TIMEOUT` environment variable for configurable API request timeouts (contributed by @dadastory in PR #12)
+
+### Improved
+
+- **Documentation Completeness**: Added comprehensive environment variable requirements section
+- **Configuration Examples**: Enhanced all transport configuration examples with proper working directory and environment variable setup
+- **User Experience**: Improved documentation clarity with better examples and troubleshooting information
+- **Test Reliability**: Enhanced test suite robustness with proper error handling and server lifecycle management
+
+### Contributors
+
+Special thanks to the community contributors who helped improve this release:
+
+- **@ricardoamaro** - Added optional default model configuration support (PR #13)
+- **@dadastory** - Added configurable request timeout and fixed documentation paths (PR #12)  
+- **@temporant** - Fixed critical Dockerfile execution and build issues
+
 ## [0.3.4] - 2025-06-11
 
 ### Changed
