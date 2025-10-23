@@ -9,6 +9,7 @@ import uvicorn
 from dotenv import load_dotenv
 from mcp.server.fastmcp import FastMCP
 from pydantic import Field
+from urllib.parse import urlparse, urlunparse
 
 # Load environment variables from .env file
 load_dotenv()
@@ -40,6 +41,96 @@ if os.getenv("PERPLEXICA_EMBEDDING_MODEL_PROVIDER") and os.getenv(
 
 # Create FastMCP server with default settings
 mcp = FastMCP("Perplexica", dependencies=["httpx", "mcp", "python-dotenv", "uvicorn"])
+
+
+def _providers_url_from_search_url(search_url: str) -> str:
+    """Convert search URL to providers URL."""
+    parsed = urlparse(search_url)
+    path = parsed.path or ""
+    if path.endswith("/api/search"):
+        base = path[: -len("/api/search")]
+        new_path = base + "/api/providers"
+    else:
+        new_path = "/api/providers"
+    return urlunparse((parsed.scheme, parsed.netloc, new_path, "", "", ""))
+
+
+async def _fetch_providers(client: httpx.AsyncClient) -> list:
+    """Fetch providers from Perplexica backend."""
+    providers_url = _providers_url_from_search_url(PERPLEXICA_BACKEND_URL)
+    resp = await client.get(providers_url, timeout=PERPLEXICA_READ_TIMEOUT)
+    resp.raise_for_status()
+    data = resp.json()
+    return data.get("providers", [])
+
+
+def _find_provider(providers: list, provider_identifier: str) -> Optional[dict]:
+    """Find provider by UUID or name (case-insensitive)."""
+    if not provider_identifier:
+        return None
+    # Try by id exact
+    for p in providers:
+        if str(p.get("id")) == str(provider_identifier):
+            return p
+    # Try by name (case-insensitive)
+    for p in providers:
+        if str(p.get("name", "")).lower() == str(provider_identifier).lower():
+            return p
+    return None
+
+
+def _find_model_key(models: list, model_identifier: str) -> Optional[str]:
+    """Find model key by key or display name."""
+    if not models or not model_identifier:
+        return None
+    for m in models:
+        if str(m.get("key")) == str(model_identifier):
+            return m.get("key")
+    for m in models:
+        if str(m.get("name", "")).lower() == str(model_identifier).lower():
+            return m.get("key")
+    return None
+
+
+async def _normalize_model_spec(client: httpx.AsyncClient, model_spec: dict, is_embedding: bool):
+    """Normalize model spec to providerId/key format."""
+    if model_spec is None:
+        return None
+
+    # If already has providerId and key, return as-is
+    if "providerId" in model_spec and "key" in model_spec:
+        return {"providerId": str(model_spec["providerId"]), "key": str(model_spec["key"])}
+
+    providers = await _fetch_providers(client)
+
+    # Get provider identifier
+    provider_identifier = model_spec.get("provider") or model_spec.get("providerId")
+    if not provider_identifier:
+        raise ValueError("Model spec must include provider or providerId")
+
+    provider = _find_provider(providers, provider_identifier)
+    if not provider:
+        raise ValueError(f"Provider '{provider_identifier}' not found")
+
+    # Get models list
+    models_list = provider.get("embeddingModels" if is_embedding else "chatModels", [])
+
+    # If key is provided, validate it
+    if "key" in model_spec:
+        key = str(model_spec["key"])
+        if _find_model_key(models_list, key) is None:
+            raise ValueError(f"Model key '{key}' not found for provider '{provider.get('name')}'")
+        return {"providerId": provider.get("id"), "key": key}
+
+    # Try to resolve by name
+    model_identifier = model_spec.get("name")
+    if not model_identifier:
+        raise ValueError("Model spec must include model name or key")
+
+    key = _find_model_key(models_list, model_identifier)
+    if not key:
+        raise ValueError(f"Model '{model_identifier}' not found for provider '{provider.get('name')}'")
+    return {"providerId": provider.get("id"), "key": key}
 
 
 async def perplexica_search(
@@ -100,6 +191,17 @@ async def perplexica_search(
 
     try:
         async with httpx.AsyncClient() as client:
+            # Normalize model specifications to providerId/key format
+            try:
+                if "chatModel" in payload and payload["chatModel"] is not None:
+                    normalized_chat = await _normalize_model_spec(client, payload["chatModel"], is_embedding=False)
+                    payload["chatModel"] = normalized_chat
+                if "embeddingModel" in payload and payload["embeddingModel"] is not None:
+                    normalized_embed = await _normalize_model_spec(client, payload["embeddingModel"], is_embedding=True)
+                    payload["embeddingModel"] = normalized_embed
+            except ValueError as ve:
+                return {"error": f"Invalid model configuration: {str(ve)}"}
+
             response = await client.post(
                 PERPLEXICA_BACKEND_URL, json=payload, timeout=PERPLEXICA_READ_TIMEOUT
             )
