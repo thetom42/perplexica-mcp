@@ -5,9 +5,8 @@ import os
 from typing import Annotated, Optional
 
 import httpx
-import uvicorn
 from dotenv import load_dotenv
-from mcp.server.fastmcp import FastMCP
+from fastmcp import FastMCP
 from pydantic import Field
 
 # Load environment variables from .env file
@@ -39,7 +38,7 @@ if os.getenv("PERPLEXICA_EMBEDDING_MODEL_PROVIDER") and os.getenv(
     }
 
 # Create FastMCP server with default settings
-mcp = FastMCP("Perplexica", dependencies=["httpx", "mcp", "python-dotenv", "uvicorn"])
+mcp = FastMCP("Perplexica")
 
 
 async def perplexica_search(
@@ -187,22 +186,19 @@ def main():
     args = parser.parse_args()
 
     if args.transport == "stdio":
-        # Use FastMCP's stdio transport
-        mcp.run()
+        mcp.run(transport="stdio")
     elif args.transport == "sse":
-        # Use FastMCP's SSE transport
         print(
             f"Starting Perplexica MCP server with SSE transport on {args.host}:{args.port}"
         )
         print(f"SSE endpoint: http://{args.host}:{args.port}/sse")
-        uvicorn.run(mcp.sse_app(), host=args.host, port=args.port)
+        mcp.run(transport="sse", host=args.host, port=args.port)
     elif args.transport == "http":
-        # Use FastMCP's Streamable HTTP transport
         print(
             f"Starting Perplexica MCP server with Streamable HTTP transport on {args.host}:{args.port}"
         )
         print(f"HTTP endpoint: http://{args.host}:{args.port}/mcp")
-        uvicorn.run(mcp.streamable_http_app(), host=args.host, port=args.port)
+        mcp.run(transport="http", host=args.host, port=args.port, path="/mcp")
 
 
 if __name__ == "__main__":
