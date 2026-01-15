@@ -4,7 +4,7 @@ A Model Context Protocol (MCP) server that provides search functionality using P
 
 ## Features
 
-- **Search Tool**: AI-powered web search with multiple focus modes
+- **Search Tool**: AI-powered search with multiple source types (web, academic, discussions)
 - **Multiple Transport Support**: stdio, SSE, and Streamable HTTP transports
 - **FastMCP Integration**: Built using FastMCP for robust MCP protocol compliance
 - **Unified Architecture**: Single server implementation supporting all transport modes
@@ -462,11 +462,11 @@ Performs AI-powered web search using Perplexica.
 **Parameters:**
 
 - `query` (string, required): Search query
-- `focus_mode` (string, required): One of 'webSearch', 'academicSearch', 'writingAssistant', 'wolframAlphaSearch', 'youtubeSearch', 'redditSearch'
-- `chat_model` (string, optional): Chat model configuration
-- `embedding_model` (string, optional): Embedding model configuration
-- `optimization_mode` (string, optional): 'speed' or 'balanced'
-- `history` (array, optional): Conversation history
+- `sources` (array, required): Search sources to use. Valid values: `"web"`, `"academic"`, `"discussions"`. Can combine multiple sources.
+- `chat_model` (object, optional): Chat model configuration
+- `embedding_model` (object, optional): Embedding model configuration
+- `optimization_mode` (string, optional): `"speed"`, `"balanced"`, or `"quality"`
+- `history` (array, optional): Conversation history as `[["human", "text"], ["assistant", "text"]]` pairs
 - `system_instructions` (string, optional): Custom instructions
 - `stream` (boolean, optional): Whether to stream responses
 
