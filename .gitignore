@@ -200,3 +200,6 @@ uv.lock
 
 # PiPi
 .pypirc
+
+# Claude Code
+.claude-trace/
