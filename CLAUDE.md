@@ -22,6 +22,9 @@ Perplexica MCP Server - A Model Context Protocol (MCP) server providing AI-power
 ## Testing
 
 ```bash
-# Run transport tests
+# Run unit tests
+uv run pytest tests/ -v
+
+# Run transport tests (integration)
 uv run python src/test_transports.py
 ```
