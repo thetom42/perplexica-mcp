@@ -491,12 +491,13 @@ async def search(...):
     ...
 ```
 
-**Requirements for background tasks:**
-- **In-memory backend**: Works out-of-the-box for basic testing
-- **Redis backend**: Recommended for production (enables persistence and horizontal scaling)
-- **Docket**: Enterprise task scheduler (optional, for advanced use cases)
+**Task execution backends:**
+- **In-memory backend** (default, `memory://`): Works out-of-the-box for single-process testing
+- **Redis backend** (`redis://host:port/db`): Recommended for production (enables persistence and horizontal scaling). Configure via `FASTMCP_DOCKET_URL` environment variable.
 
-**Note**: Background tasks are not enabled by default as they require additional infrastructure setup. For most use cases, the synchronous implementation is sufficient.
+FastMCP uses Docket as the built-in task scheduler that powers the task system. You can scale workers via `fastmcp tasks worker` CLI command.
+
+**Note**: Background tasks are not enabled by default as they require additional infrastructure setup for production use. For most use cases, the synchronous implementation is sufficient.
 
 For more information, see the [FastMCP documentation](https://gofastmcp.com/servers/tools).
 

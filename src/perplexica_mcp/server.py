@@ -7,28 +7,26 @@ from typing import Annotated, Optional, Union
 import httpx
 from dotenv import load_dotenv
 from fastmcp import FastMCP
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 from urllib.parse import urlparse, urlunparse
 
 
 # Structured output models for MCP 2025-06-18 compliance
 class Source(BaseModel):
     """A source document from search results."""
+    model_config = ConfigDict(extra="allow")  # Allow additional fields from Perplexica
+
     title: Optional[str] = None
     url: Optional[str] = None
     content: Optional[str] = None
 
-    class Config:
-        extra = "allow"  # Allow additional fields from Perplexica
-
 
 class SearchResult(BaseModel):
     """Successful search result from Perplexica."""
+    model_config = ConfigDict(extra="allow")  # Allow additional fields from Perplexica
+
     answer: Optional[str] = Field(default=None, description="The AI-generated answer")
     sources: list[Source] = Field(default_factory=list, description="Source documents")
-
-    class Config:
-        extra = "allow"  # Allow additional fields from Perplexica
 
 
 class SearchError(BaseModel):
@@ -236,7 +234,7 @@ async def perplexica_search(
             return SearchResult(**data)
     except httpx.HTTPError as e:
         return SearchError(error=f"HTTP error occurred: {e!s}")
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 - ensure tool always returns SearchError
         return SearchError(error=f"An error occurred: {e!s}")
 
 
@@ -272,10 +270,13 @@ async def search(
     This tool provides access to Perplexica's search capabilities with multiple source types
     that can be combined: web search, academic search, and discussions (forums).
     """
+    # Normalize model defaults before validation
+    if chat_model is None:
+        chat_model = DEFAULT_CHAT_MODEL
+    if embedding_model is None:
+        embedding_model = DEFAULT_EMBEDDING_MODEL
     # Fail fast if required models are absent
-    if (chat_model or DEFAULT_CHAT_MODEL) is None or (
-        embedding_model or DEFAULT_EMBEDDING_MODEL
-    ) is None:
+    if chat_model is None or embedding_model is None:
         return SearchError(
             error="Both chatModel and embeddingModel are required. Configure PERPLEXICA_* model env vars or pass them in the request."
         )
