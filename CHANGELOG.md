@@ -5,6 +5,32 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.6] - 2026-01-20
+
+### Fixed
+
+- **Provider ID Resolution**: Fixed "Invalid provider id" error when using provider names instead of UUIDs. The server now automatically resolves provider names to their UUIDs via the `/api/providers` endpoint (contributed by @JosXa in PR #24)
+- **HTTP 421 Misdirected Request**: Fixed host parameter handling in FastMCP to properly bind to `0.0.0.0` when configured, allowing access via IP address instead of only `localhost` (contributed by @RayXu14 in PR #26)
+
+### Changed
+
+- **API Parameter Update**: Replaced `focus_mode` string parameter with `sources` array parameter to match the new Perplexica search API. Valid source values are: `"web"`, `"academic"`, `"discussions"` (contributed by @mintypack in PR #28)
+- **FastMCP Migration**: Migrated from `mcp[cli]` with `uvicorn` to standalone `fastmcp` package for simplified transport handling
+- **Optimization Mode**: Added `"quality"` option to `optimization_mode` alongside existing `"speed"` and `"balanced"` options
+
+### Added
+
+- **Test Scripts**: Added `test_clientside.py` and `test_serverside.sh` for testing HTTP transport mode
+- **Multi-Source Search**: Search now supports multiple source types simultaneously via the `sources` array
+
+### Contributors
+
+Special thanks to the community contributors who helped improve this release:
+
+- **@JosXa** - Fixed provider ID resolution for provider names (PR #24)
+- **@RayXu14** - Fixed HTTP 421 Misdirected Request issue (PR #26)
+- **@mintypack** - Updated API to use sources instead of focusMode (PR #28)
+
 ## [0.3.5] - 2025-09-25
 
 ### Fixed
