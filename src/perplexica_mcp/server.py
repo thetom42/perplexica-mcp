@@ -134,7 +134,7 @@ async def _normalize_model_spec(client: httpx.AsyncClient, model_spec: dict, is_
 
 async def perplexica_search(
     query,
-    focus_mode,
+    sources,
     chat_model=None,
     embedding_model=None,
     optimization_mode=None,
@@ -147,19 +147,15 @@ async def perplexica_search(
 
     Args:
         query (str): The search query
+        sources (list): Search sources - list containing: "web", "academic", "discussions"
         chat_model (dict, optional): Chat model configuration with:
             provider: Provider name (e.g., openai, ollama)
             name: Model name (e.g., gpt-4o-mini)
-            customOpenAIBaseURL: Optional custom OpenAI base URL
-            customOpenAIKey: Optional custom OpenAI API key
         embedding_model (dict, optional): Embedding model configuration with:
             provider: Provider name (e.g., openai)
             name: Model name (e.g., text-embedding-3-small)
-            customOpenAIBaseURL: Optional custom OpenAI base URL
-            customOpenAIKey: Optional custom OpenAI API key
-        focus_mode (str): Search focus mode (webSearch, academicSearch, etc.)
-        optimization_mode (str, optional): Optimization mode (speed, balanced)
-        history (list, optional): Conversation history
+        optimization_mode (str, optional): Optimization mode (speed, balanced, quality)
+        history (list, optional): Conversation history as [["human", "text"], ["assistant", "text"]] pairs
         system_instructions (str, optional): Custom system instructions
         stream (bool, optional): Whether to stream responses
 
@@ -168,7 +164,7 @@ async def perplexica_search(
     """
 
     # Prepare the request payload
-    payload = {"query": query, "focusMode": focus_mode}
+    payload = {"query": query, "sources": sources}
 
     # Add optional parameters if provided
     if chat_model:
@@ -215,10 +211,10 @@ async def perplexica_search(
 @mcp.tool()
 async def search(
     query: Annotated[str, Field(description="Search query")],
-    focus_mode: Annotated[
-        str,
+    sources: Annotated[
+        list,
         Field(
-            description="Focus mode: webSearch, academicSearch, writingAssistant, wolframAlphaSearch, youtubeSearch, redditSearch"
+            description="Search sources array. Valid values: 'web' (general web search), 'academic' (scholarly articles), 'discussions' (forums like Reddit)"
         ),
     ],
     chat_model: Annotated[
@@ -228,10 +224,10 @@ async def search(
         Optional[dict], Field(description="Embedding model configuration")
     ] = DEFAULT_EMBEDDING_MODEL,
     optimization_mode: Annotated[
-        Optional[str], Field(description="Optimization mode: speed or balanced")
+        Optional[str], Field(description="Optimization mode: speed, balanced, or quality")
     ] = None,
     history: Annotated[
-        Optional[list], Field(description="Conversation history")
+        Optional[list], Field(description="Conversation history as [[role, text], ...] pairs")
     ] = None,
     system_instructions: Annotated[
         Optional[str], Field(description="Custom system instructions")
@@ -241,9 +237,8 @@ async def search(
     """
     Search using Perplexica's AI-powered search engine.
 
-    This tool provides access to Perplexica's search capabilities with various focus modes
-    for different types of searches including web search, academic search, writing assistance,
-    and specialized searches for platforms like YouTube and Reddit.
+    This tool provides access to Perplexica's search capabilities with multiple source types
+    that can be combined: web search, academic search, and discussions (forums).
     """
     # Fail fast if required models are absent
     if (chat_model or DEFAULT_CHAT_MODEL) is None or (
@@ -255,7 +250,7 @@ async def search(
 
     return await perplexica_search(
         query=query,
-        focus_mode=focus_mode,
+        sources=sources,
         chat_model=chat_model,
         embedding_model=embedding_model,
         optimization_mode=optimization_mode,
