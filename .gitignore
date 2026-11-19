@@ -203,3 +203,7 @@ uv.lock
 
 # Claude Code
 .claude-trace/
+
+# Roo Code chat logs
+history/
+tasks/
