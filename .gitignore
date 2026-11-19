@@ -200,3 +200,10 @@ uv.lock
 
 # PiPi
 .pypirc
+
+# Claude Code
+.claude-trace/
+
+# Roo Code chat logs
+history/
+tasks/

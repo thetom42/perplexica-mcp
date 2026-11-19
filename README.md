@@ -10,42 +10,6 @@ A Model Context Protocol (MCP) server that provides search functionality using P
 - **Unified Architecture**: Single server implementation supporting all transport modes
 - **Production Ready**: Docker support with security best practices
 
-## Development Environment
-
-### For Claude Code Users
-
-**Important**: If you are using Claude Code for development, this project requires the use of the `container-use` MCP server for all development operations. All file operations, code changes, and shell commands must be executed within container-use environments.
-
-#### Working with Container-Use (Claude Code Only)
-
-When contributing to this project using Claude Code, you must:
-
-1. **Use Container-Use Only**: All file operations, code editing, and shell commands must be performed using container-use environments
-2. **View Your Work**: After making changes, inform others how to access your work:
-   - Use `container-use log <env_id>` to view the development log
-   - Use `container-use checkout <env_id>` to check out your environment
-3. **No Local Operations**: Do not perform file operations directly on the local filesystem
-
-#### Example Development Workflow (Claude Code)
-
-```bash
-# Create a new environment for your work
-container-use create --title "Your feature description"
-
-# Make your changes using container-use tools
-# (All file operations handled by container-use)
-
-# Share your work with others
-container-use log <your-env-id>
-container-use checkout <your-env-id>
-```
-
-This ensures consistency, reproducibility, and proper version control for all development activities when using Claude Code.
-
-### For Other Development Environments
-
-If you are not using Claude Code, you can develop normally using your preferred tools and IDE. The container-use requirement does not apply to regular development workflows.
-
 ## Installation
 
 ### From PyPI (Recommended)
@@ -510,9 +474,32 @@ This will test:
 The server is built using:
 
 - **FastMCP**: Modern MCP server framework with built-in transport support
-- **Uvicorn**: ASGI server for SSE and HTTP transports
 - **httpx**: HTTP client for Perplexica API communication
 - **python-dotenv**: Environment variable management
+
+## Advanced Configuration
+
+### Background Tasks (Optional)
+
+FastMCP 2.14+ supports background tasks for long-running operations using the MCP 2025-11-25 specification. This allows clients to track progress without blocking.
+
+To enable background tasks for the search tool, you can modify the decorator:
+
+```python
+@mcp.tool(task=True)
+async def search(...):
+    ...
+```
+
+**Task execution backends:**
+- **In-memory backend** (default, `memory://`): Works out-of-the-box for single-process testing
+- **Redis backend** (`redis://host:port/db`): Recommended for production (enables persistence and horizontal scaling). Configure via `FASTMCP_DOCKET_URL` environment variable.
+
+FastMCP uses Docket as the built-in task scheduler that powers the task system. You can scale workers via `fastmcp tasks worker` CLI command.
+
+**Note**: Background tasks are not enabled by default as they require additional infrastructure setup for production use. For most use cases, the synchronous implementation is sufficient.
+
+For more information, see the [FastMCP documentation](https://gofastmcp.com/servers/tools).
 
 ## Architecture
 
@@ -543,11 +530,10 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 ## Contributing
 
 1. Fork the repository
-2. Create a feature branch (using container-use environments if using Claude Code)
-3. Make your changes (within container-use environment if using Claude Code)
+2. Create a feature branch
+3. Make your changes
 4. Add tests if applicable
 5. Submit a pull request
-6. If using Claude Code, provide access to your work via `container-use log <env_id>` and `container-use checkout <env_id>`
 
 ## Support
 

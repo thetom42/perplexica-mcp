@@ -2,13 +2,39 @@
 
 import argparse
 import os
-from typing import Annotated, Optional
+from typing import Annotated, Optional, Union
 
 import httpx
 from dotenv import load_dotenv
 from fastmcp import FastMCP
-from pydantic import Field
+from pydantic import BaseModel, ConfigDict, Field
 from urllib.parse import urlparse, urlunparse
+
+
+# Structured output models for MCP 2025-06-18 compliance
+class Source(BaseModel):
+    """A source document from search results."""
+    model_config = ConfigDict(extra="allow")  # Allow additional fields from Perplexica
+
+    title: Optional[str] = None
+    url: Optional[str] = None
+    content: Optional[str] = None
+
+
+class SearchResult(BaseModel):
+    """Successful search result from Perplexica."""
+    model_config = ConfigDict(extra="allow")  # Allow additional fields from Perplexica
+
+    answer: Optional[str] = Field(default=None, description="The AI-generated answer")
+    sources: list[Source] = Field(default_factory=list, description="Source documents")
+
+
+class SearchError(BaseModel):
+    """Error response from search."""
+    error: str = Field(description="Error message")
+
+
+SearchResponse = Union[SearchResult, SearchError]
 
 # Load environment variables from .env file
 load_dotenv()
@@ -141,7 +167,7 @@ async def perplexica_search(
     history=None,
     system_instructions=None,
     stream=False,
-) -> dict:
+) -> SearchResponse:
     """
     Search using the Perplexica API
 
@@ -195,17 +221,21 @@ async def perplexica_search(
                     normalized_embed = await _normalize_model_spec(client, payload["embeddingModel"], is_embedding=True)
                     payload["embeddingModel"] = normalized_embed
             except ValueError as ve:
-                return {"error": f"Invalid model configuration: {str(ve)}"}
+                return SearchError(error=f"Invalid model configuration: {ve!s}")
 
             response = await client.post(
                 PERPLEXICA_BACKEND_URL, json=payload, timeout=PERPLEXICA_READ_TIMEOUT
             )
             response.raise_for_status()
-            return response.json()
+            data = response.json()
+            # Parse response into structured format
+            if "error" in data:
+                return SearchError(error=data["error"])
+            return SearchResult(**data)
     except httpx.HTTPError as e:
-        return {"error": f"HTTP error occurred: {str(e)}"}
-    except Exception as e:
-        return {"error": f"An error occurred: {str(e)}"}
+        return SearchError(error=f"HTTP error occurred: {e!s}")
+    except Exception as e:  # noqa: BLE001 - ensure tool always returns SearchError
+        return SearchError(error=f"An error occurred: {e!s}")
 
 
 @mcp.tool()
@@ -233,20 +263,23 @@ async def search(
         Optional[str], Field(description="Custom system instructions")
     ] = None,
     stream: Annotated[bool, Field(description="Whether to stream responses")] = False,
-) -> dict:
+) -> SearchResponse:
     """
     Search using Perplexica's AI-powered search engine.
 
     This tool provides access to Perplexica's search capabilities with multiple source types
     that can be combined: web search, academic search, and discussions (forums).
     """
+    # Normalize model defaults before validation
+    if chat_model is None:
+        chat_model = DEFAULT_CHAT_MODEL
+    if embedding_model is None:
+        embedding_model = DEFAULT_EMBEDDING_MODEL
     # Fail fast if required models are absent
-    if (chat_model or DEFAULT_CHAT_MODEL) is None or (
-        embedding_model or DEFAULT_EMBEDDING_MODEL
-    ) is None:
-        return {
-            "error": "Both chatModel and embeddingModel are required. Configure PERPLEXICA_* model env vars or pass them in the request."
-        }
+    if chat_model is None or embedding_model is None:
+        return SearchError(
+            error="Both chatModel and embeddingModel are required. Configure PERPLEXICA_* model env vars or pass them in the request."
+        )
 
     return await perplexica_search(
         query=query,
